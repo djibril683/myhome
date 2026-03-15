@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MyHome — Trouvez votre logement</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1A56C4;
+  --primary-dark: #1244A0;
+  --primary-light: #E8F0FD;
+  --accent: #F5A623;
+  --verified: #16A34A;
+  --danger: #DC2626;
+  --bg: #F4F6FA;
+  --white: #FFFFFF;
+  --text: #111827;
+  --text2: #6B7280;
+  --text3: #9CA3AF;
+  --border: #E5E7EB;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.13);
+  --nav-h: 64px;
+  --bottom-h: 70px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; max-width:430px; margin:0 auto; overflow-x:hidden; }
+
+/* TOP NAV */
+.top-nav { position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; z-index:100; background:var(--primary); display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:var(--nav-h); }
+.app-logo { display:flex; align-items:center; gap:10px; font-size:1.3rem; font-weight:800; color:white; letter-spacing:-0.3px; }
+.app-logo-icon { width:36px; height:36px; background:rgba(255,255,255,0.2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+.nav-actions { display:flex; gap:8px; }
+.nav-icon-btn { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:white; transition:background 0.2s; position:relative; }
+.nav-icon-btn:hover { background:rgba(255,255,255,0.25); }
+.notif-dot { position:absolute; top:6px; right:6px; width:8px; height:8px; background:var(--accent); border-radius:50%; border:2px solid var(--primary); }
+
+/* BOTTOM NAV */
+.bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; z-index:100; background:var(--white); border-top:1px solid var(--border); display:flex; height:var(--bottom-h); box-shadow:0 -4px 20px rgba(0,0,0,0.06); }
+.bnav-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer; border:none; background:none; transition:all 0.2s; padding-bottom:4px; }
+.bnav-icon { font-size:1.3rem; transition:transform 0.2s; }
+.bnav-label { font-size:0.7rem; font-weight:500; color:var(--text3); }
+.bnav-item.active .bnav-label { color:var(--primary); font-weight:700; }
+.bnav-item.active .bnav-icon { transform:translateY(-2px); }
+.bnav-pub-wrap { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding-bottom:4px; }
+.bnav-pub { width:52px; height:52px; border-radius:50%; background:var(--primary); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:white; box-shadow:0 4px 16px rgba(26,86,196,0.4); margin-top:-14px; transition:all 0.2s; }
+.bnav-pub:hover { transform:scale(1.05); }
+.bnav-pub-lbl { font-size:0.7rem; font-weight:700; color:var(--primary); }
+
+/* PAGES */
+.page { display:none; padding-top:var(--nav-h); padding-bottom:var(--bottom-h); min-height:100vh; }
+.page.active { display:block; animation:fadeUp 0.25s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
+/* HOME */
+.home-search-bar { background:var(--primary); padding:0 16px 16px; }
+.search-wrap { position:relative; }
+.search-ico { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text3); pointer-events:none; }
+.search-inp { width:100%; background:var(--white); border:none; border-radius:12px; padding:13px 16px 13px 42px; font-family:'Inter',sans-serif; font-size:0.9rem; color:var(--text); outline:none; box-shadow:0 2px 8px rgba(0,0,0,0.12); }
+.search-inp::placeholder { color:var(--text3); }
+
+.chips-scroll { overflow-x:auto; display:flex; gap:8px; padding:12px 16px; background:var(--white); border-bottom:1px solid var(--border); scrollbar-width:none; }
+.chips-scroll::-webkit-scrollbar { display:none; }
+.chip { white-space:nowrap; border:1.5px solid var(--border); background:var(--white); color:var(--text2); font-family:'Inter',sans-serif; font-size:0.8rem; font-weight:500; padding:7px 14px; border-radius:100px; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+.chip.active { background:var(--primary); color:white; border-color:var(--primary); font-weight:600; }
+.chip:hover:not(.active) { border-color:var(--primary); color:var(--primary); }
+
+.sec-hdr { display:flex; align-items:center; justify-content:space-between; padding:18px 16px 10px; }
+.sec-hdr h2 { font-size:1rem; font-weight:700; }
+.see-all { font-size:0.82rem; font-weight:600; color:var(--primary); cursor:pointer; background:none; border:none; }
+
+/* HCARD */
+.hlist { display:flex; flex-direction:column; padding:0 16px 8px; }
+.hcard { background:var(--white); border-radius:var(--radius); display:flex; overflow:hidden; box-shadow:var(--shadow); cursor:pointer; transition:all 0.2s; margin-bottom:12px; border:1px solid var(--border); }
+.hcard:hover { box-shadow:var(--shadow-lg); transform:translateY(-1px); }
+.hcard.premium { border-color:var(--primary); border-width:1.5px; }
+.hcard-img { width:110px; min-height:110px; flex-shrink:0; background:linear-gradient(135deg,#CBD5E1,#94A3B8); display:flex; align-items:center; justify-content:center; font-size:2.5rem; position:relative; overflow:hidden; }
+.hcard-pbadge { position:absolute; top:6px; left:6px; background:var(--primary); color:white; font-size:0.6rem; font-weight:700; padding:3px 7px; border-radius:100px; }
+.hcard-body { flex:1; padding:12px 12px 10px; display:flex; flex-direction:column; justify-content:space-between; }
+.hcard-title { font-size:0.9rem; font-weight:700; color:var(--text); margin-bottom:3px; line-height:1.3; }
+.hcard-price { font-size:0.95rem; font-weight:800; color:var(--primary); margin-bottom:2px; }
+.hcard-price span { font-size:0.75rem; font-weight:400; color:var(--text2); }
+.hcard-loc { font-size:0.78rem; color:var(--text2); margin-bottom:8px; }
+.hcard-meta { display:flex; align-items:center; gap:12px; padding-top:8px; border-top:1px solid var(--border); }
+.hcard-meta-i { display:flex; align-items:center; gap:4px; font-size:0.75rem; color:var(--text2); font-weight:500; }
+.hcard-fav { margin-left:auto; background:none; border:none; cursor:pointer; font-size:1.1rem; transition:transform 0.2s; padding:2px; }
+.hcard-fav:hover { transform:scale(1.2); }
+.hcard-fav.act { color:var(--danger); }
+.vbadge { display:inline-flex; align-items:center; gap:3px; background:rgba(22,163,74,0.1); color:var(--verified); font-size:0.65rem; font-weight:700; padding:2px 7px; border-radius:100px; margin-left:6px; }
+
+/* SEARCH PAGE */
+.search-pg-hdr { background:var(--white); padding:12px 16px; border-bottom:1px solid var(--border); }
+.spg-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+.spg-inp-wrap { flex:1; position:relative; }
+.spg-ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:0.9rem; color:var(--text3); pointer-events:none; }
+.spg-inp { width:100%; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px 10px 34px; font-family:'Inter',sans-serif; font-size:0.875rem; color:var(--text); outline:none; transition:border-color 0.2s; }
+.spg-inp:focus { border-color:var(--primary); }
+.flt-btn { background:var(--primary); color:white; border:none; border-radius:var(--radius-sm); padding:10px 14px; cursor:pointer; font-size:1rem; transition:all 0.2s; }
+.flt-panel { background:var(--bg); border-radius:var(--radius-sm); padding:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.flt-sel { border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; font-family:'Inter',sans-serif; font-size:0.8rem; color:var(--text); background:var(--white); outline:none; width:100%; }
+.flt-sel:focus { border-color:var(--primary); }
+.flt-apply { grid-column:1/-1; background:var(--primary); color:white; border:none; border-radius:var(--radius-sm); padding:10px; font-family:'Inter',sans-serif; font-size:0.875rem; font-weight:600; cursor:pointer; }
+.res-info { display:flex; align-items:center; padding:10px 16px; font-size:0.82rem; color:var(--text2); }
+.slist { padding:0 16px 8px; }
+
+/* DETAIL */
+.detail-top { background:var(--primary); padding:12px 16px; display:flex; align-items:center; gap:12px; }
+.back-btn { width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.2); border:none; color:white; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.detail-top h2 { font-size:0.95rem; font-weight:700; color:white; flex:1; }
+.detail-img-area { background:linear-gradient(135deg,#CBD5E1,#94A3B8); height:220px; display:flex; align-items:center; justify-content:center; font-size:6rem; position:relative; }
+.detail-dots { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:6px; }
+.dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.5); }
+.dot.act { background:white; width:20px; border-radius:4px; }
+.detail-cnt { padding:16px; }
+.detail-name { font-size:1.1rem; font-weight:800; color:var(--text); line-height:1.3; margin-bottom:4px; }
+.detail-loc { font-size:0.85rem; color:var(--text2); margin-bottom:12px; }
+.detail-price { font-size:1.4rem; font-weight:800; color:var(--primary); margin-bottom:4px; }
+.detail-price span { font-size:0.85rem; font-weight:400; color:var(--text2); }
+.badges-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.badge { font-size:0.7rem; font-weight:700; padding:4px 10px; border-radius:100px; }
+.badge-prem { background:var(--primary); color:white; }
+.badge-ver { background:rgba(22,163,74,0.12); color:var(--verified); border:1px solid rgba(22,163,74,0.3); }
+.chips-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.dchip { display:flex; align-items:center; gap:5px; background:var(--bg); border:1px solid var(--border); border-radius:100px; padding:6px 12px; font-size:0.78rem; font-weight:500; color:var(--text2); }
+.sec-ttl { font-size:0.9rem; font-weight:700; margin-bottom:8px; }
+.detail-desc { font-size:0.875rem; color:var(--text2); line-height:1.7; margin-bottom:20px; }
+.contact-card { background:var(--white); border-radius:var(--radius); padding:16px; border:1px solid var(--border); box-shadow:var(--shadow); }
+.cc-title { font-size:0.9rem; font-weight:700; margin-bottom:14px; }
+.owner-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.owner-av { width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg,var(--primary),#60A5FA); display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:800; color:white; flex-shrink:0; }
+.owner-name { font-weight:700; font-size:0.9rem; }
+.owner-sub { font-size:0.75rem; color:var(--text3); }
+.cbtns { display:flex; gap:8px; }
+.btn-call { flex:1; background:var(--verified); color:white; border:none; border-radius:var(--radius-sm); padding:12px; font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:5px; }
+.btn-call:hover { background:#15803d; }
+.btn-chat { flex:1; background:var(--primary); color:white; border:none; border-radius:var(--radius-sm); padding:12px; font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:5px; }
+.btn-chat:hover { background:var(--primary-dark); }
+.dfav-btn { background:none; border:none; font-size:1.4rem; cursor:pointer; transition:transform 0.2s; }
+.dfav-btn:hover { transform:scale(1.2); }
+.dfav-btn.act { color:var(--danger); }
+
+/* PUBLISH */
+.pg-hdr { background:var(--primary); padding:16px 20px; }
+.pg-hdr h1 { font-size:1.1rem; font-weight:800; color:white; }
+.pg-hdr p { font-size:0.8rem; color:rgba(255,255,255,0.7); margin-top:2px; }
+.form-sec { padding:16px; }
+.form-card { background:var(--white); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:14px; border:1px solid var(--border); }
+.fc-title { font-size:0.85rem; font-weight:700; color:var(--text); margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.form-grp { margin-bottom:12px; }
+.form-grp:last-child { margin-bottom:0; }
+.form-lbl { display:block; font-size:0.75rem; font-weight:600; color:var(--text2); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.3px; }
+.form-inp,.form-sel,.form-ta { width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; font-family:'Inter',sans-serif; font-size:0.875rem; color:var(--text); background:var(--bg); outline:none; transition:border-color 0.2s; }
+.form-inp:focus,.form-sel:focus,.form-ta:focus { border-color:var(--primary); background:white; }
+.form-ta { resize:vertical; min-height:90px; }
+.upload-z { border:2px dashed var(--border); border-radius:var(--radius); padding:24px 16px; text-align:center; cursor:pointer; transition:all 0.2s; background:var(--bg); margin-bottom:10px; }
+.upload-z:hover { border-color:var(--primary); background:var(--primary-light); }
+.uz-icon { font-size:1.8rem; margin-bottom:6px; }
+.uz-txt { font-size:0.82rem; color:var(--text2); }
+.uz-txt span { color:var(--primary); font-weight:600; }
+.plan-opts { display:flex; flex-direction:column; gap:10px; }
+.plan-opt { border:2px solid var(--border); border-radius:var(--radius); padding:14px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:12px; }
+.plan-opt:hover { border-color:var(--primary); }
+.plan-opt.sel { border-color:var(--primary); background:var(--primary-light); }
+.plan-opt input[type=radio] { display:none; }
+.plan-radio { width:20px; height:20px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; }
+.plan-opt.sel .plan-radio { border-color:var(--primary); background:var(--primary); }
+.plan-opt.sel .plan-radio::after { content:''; width:8px; height:8px; border-radius:50%; background:white; }
+.plan-ico { font-size:1.4rem; flex-shrink:0; }
+.plan-name { font-weight:700; font-size:0.875rem; }
+.plan-dsc { font-size:0.75rem; color:var(--text2); margin-top:1px; }
+.plan-prc { margin-left:auto; font-weight:800; color:var(--primary); font-size:0.9rem; flex-shrink:0; }
+.pub-btn { width:100%; background:var(--primary); color:white; border:none; border-radius:var(--radius); padding:16px; font-family:'Inter',sans-serif; font-size:1rem; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 16px rgba(26,86,196,0.3); }
+.pub-btn:hover { background:var(--primary-dark); transform:translateY(-1px); }
+
+/* PROFILE */
+.prof-top { background:linear-gradient(135deg,var(--primary) 0%,#3B82F6 100%); padding:24px 20px 32px; }
+.prof-av-row { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.prof-av { width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.2); border:3px solid rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800; color:white; }
+.prof-name { font-size:1.1rem; font-weight:800; color:white; }
+.prof-role { font-size:0.8rem; color:rgba(255,255,255,0.65); margin-top:2px; }
+.prof-stats { display:flex; background:rgba(255,255,255,0.12); border-radius:12px; overflow:hidden; }
+.prof-stat { flex:1; text-align:center; padding:12px 8px; border-right:1px solid rgba(255,255,255,0.1); }
+.prof-stat:last-child { border-right:none; }
+.pstat-num { font-size:1.3rem; font-weight:800; color:white; }
+.pstat-lbl { font-size:0.68rem; color:rgba(255,255,255,0.6); margin-top:1px; }
+.ptabs { display:flex; background:var(--white); border-bottom:1px solid var(--border); }
+.ptab { flex:1; padding:12px 8px; border:none; background:none; cursor:pointer; font-family:'Inter',sans-serif; font-size:0.8rem; font-weight:600; color:var(--text3); border-bottom:3px solid transparent; transition:all 0.2s; }
+.ptab.act { color:var(--primary); border-bottom-color:var(--primary); }
+.ptab-c { display:none; padding:12px 16px; }
+.ptab-c.act { display:block; animation:fadeUp 0.2s ease; }
+
+/* FAVS */
+.favs-hdr { background:var(--white); padding:14px 16px; border-bottom:1px solid var(--border); }
+.favs-hdr h2 { font-size:1rem; font-weight:700; }
+.favs-hdr p { font-size:0.8rem; color:var(--text2); margin-top:2px; }
+
+/* MODALS */
+.modal-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.55); backdrop-filter:blur(3px); align-items:flex-end; justify-content:center; }
+.modal-overlay.open { display:flex; animation:fadeIn 0.2s ease; }
+.modal { background:var(--white); border-radius:20px 20px 0 0; width:100%; max-width:430px; max-height:90vh; overflow-y:auto; animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:12px auto 16px; }
+.modal-ttl { font-size:1rem; font-weight:800; text-align:center; margin-bottom:4px; }
+.modal-sub { font-size:0.82rem; color:var(--text2); text-align:center; margin-bottom:20px; }
+.modal-body { padding:0 20px 24px; }
+
+/* CHAT */
+.chat-msgs { height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:16px; background:var(--bg); border-radius:var(--radius); margin-bottom:12px; }
+.msg { max-width:78%; }
+.msg-bubble { padding:9px 13px; border-radius:16px; font-size:0.85rem; line-height:1.5; }
+.msg.recv .msg-bubble { background:var(--white); color:var(--text); border-bottom-left-radius:4px; box-shadow:var(--shadow); }
+.msg.sent { align-self:flex-end; }
+.msg.sent .msg-bubble { background:var(--primary); color:white; border-bottom-right-radius:4px; }
+.msg-time { font-size:0.67rem; color:var(--text3); margin-top:3px; padding:0 3px; }
+.msg.sent .msg-time { text-align:right; }
+.chat-inp-row { display:flex; gap:8px; }
+.chat-inp { flex:1; border:1.5px solid var(--border); border-radius:100px; padding:10px 16px; font-family:'Inter',sans-serif; font-size:0.875rem; outline:none; background:var(--bg); transition:border-color 0.2s; }
+.chat-inp:focus { border-color:var(--primary); }
+.chat-send { width:42px; height:42px; border-radius:50%; background:var(--primary); border:none; color:white; cursor:pointer; font-size:1rem; transition:all 0.2s; }
+
+/* AUTH */
+.atabs { display:flex; background:var(--bg); border-radius:10px; padding:4px; margin-bottom:20px; }
+.atab { flex:1; padding:9px; border:none; background:none; cursor:pointer; font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:600; color:var(--text2); border-radius:7px; transition:all 0.2s; }
+.atab.act { background:var(--white); color:var(--primary); box-shadow:var(--shadow); }
+.auth-form { display:flex; flex-direction:column; gap:12px; }
+.role-row { display:flex; gap:8px; }
+.role-btn { flex:1; padding:10px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:none; cursor:pointer; font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600; color:var(--text2); text-align:center; transition:all 0.2s; }
+.role-btn.sel { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+.auth-sub { background:var(--primary); color:white; border:none; border-radius:var(--radius-sm); padding:13px; font-family:'Inter',sans-serif; font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.auth-sub:hover { background:var(--primary-dark); }
+
+/* CONFIRM */
+.conf-icon { font-size:2.5rem; text-align:center; margin-bottom:12px; }
+.conf-acts { display:flex; gap:10px; margin-top:20px; }
+.conf-cancel { flex:1; padding:12px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:none; font-family:'Inter',sans-serif; font-size:0.875rem; font-weight:600; color:var(--text2); cursor:pointer; }
+.conf-ok { flex:1; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:white; font-family:'Inter',sans-serif; font-size:0.875rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.conf-ok.danger { background:var(--danger); }
+
+/* PAYDUNYA */
+.pay-steps { display:flex; align-items:center; padding:0 20px 16px; }
+.pstep { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+.pstep-dot { width:28px; height:28px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:var(--text3); background:var(--bg); transition:all 0.3s; position:relative; z-index:1; }
+.pstep.act .pstep-dot { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+.pstep.done .pstep-dot { border-color:var(--verified); background:var(--verified); color:white; }
+.pstep-lbl { font-size:0.65rem; color:var(--text3); font-weight:500; }
+.pstep.act .pstep-lbl { color:var(--primary); font-weight:700; }
+.pline { flex:1; height:2px; background:var(--border); margin-top:-20px; }
+.pline.done { background:var(--verified); }
+.pay-sum { background:var(--bg); border-radius:var(--radius-sm); padding:14px; margin-bottom:16px; border:1px solid var(--border); }
+.psr { display:flex; justify-content:space-between; font-size:0.82rem; padding:3px 0; }
+.psr span:first-child { color:var(--text2); }
+.psr span:last-child { font-weight:600; }
+.pst { display:flex; justify-content:space-between; padding-top:10px; margin-top:6px; border-top:1px solid var(--border); font-weight:700; }
+.pst span:last-child { color:var(--primary); font-size:1rem; }
+.pay-methods { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.pay-meth { border:1.5px solid var(--border); border-radius:var(--radius); padding:12px 14px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:12px; }
+.pay-meth:hover { border-color:var(--primary); }
+.pay-meth.sel { border-color:var(--primary); background:var(--primary-light); }
+.pm-ico { font-size:1.5rem; flex-shrink:0; }
+.pm-name { font-weight:700; font-size:0.85rem; }
+.pm-desc { font-size:0.73rem; color:var(--text3); }
+.pm-chk { margin-left:auto; width:20px; height:20px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:0.65rem; color:white; transition:all 0.2s; }
+.pay-meth.sel .pm-chk { background:var(--primary); border-color:var(--primary); }
+.phone-row { display:flex; border:1.5px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; transition:border-color 0.2s; }
+.phone-row:focus-within { border-color:var(--primary); }
+.phone-pfx { background:var(--bg); padding:11px 12px; font-weight:700; font-size:0.85rem; color:var(--text2); border-right:1px solid var(--border); white-space:nowrap; }
+.phone-inp { flex:1; border:none; outline:none; padding:11px 12px; font-family:'Inter',sans-serif; font-size:0.9rem; background:var(--white); }
+.pay-btn { width:100%; background:var(--primary); color:white; border:none; border-radius:var(--radius); padding:14px; font-family:'Inter',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.pay-btn:hover { background:var(--primary-dark); }
+.pay-spinner { width:56px; height:56px; border-radius:50%; border:4px solid var(--border); border-top-color:var(--primary); animation:spin 0.8s linear infinite; margin:0 auto 16px; }
+.otp-demo { background:linear-gradient(135deg,var(--primary),#3B82F6); border-radius:var(--radius); padding:16px; text-align:center; margin-bottom:16px; }
+.otp-dlbl { color:rgba(255,255,255,0.7); font-size:0.75rem; margin-bottom:6px; }
+.otp-dcode { font-size:2.2rem; font-weight:900; color:white; letter-spacing:6px; }
+.otp-inps { display:flex; gap:10px; justify-content:center; margin-bottom:16px; }
+.otp-i { width:52px; height:58px; border:2px solid var(--border); border-radius:var(--radius-sm); text-align:center; font-family:'Inter',sans-serif; font-size:1.3rem; font-weight:800; outline:none; transition:border-color 0.2s; background:var(--bg); }
+.otp-i:focus { border-color:var(--primary); background:white; }
+.pay-suc-ico { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(--verified),#22c55e); display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 16px; box-shadow:0 6px 24px rgba(22,163,74,0.3); animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+.rcpt { background:var(--bg); border-radius:var(--radius-sm); padding:14px; margin:14px 0; border:1px solid var(--border); }
+.rcpt-row { display:flex; justify-content:space-between; font-size:0.8rem; padding:4px 0; color:var(--text2); }
+.rcpt-row strong { color:var(--text); }
+.pay-ftr { display:flex; align-items:center; justify-content:center; gap:6px; padding:12px 20px; border-top:1px solid var(--border); font-size:0.72rem; color:var(--text3); background:var(--bg); }
+.pd-logo { background:#FF6B00; color:white; font-weight:900; font-size:0.65rem; padding:2px 6px; border-radius:3px; }
+
+/* EMPTY */
+.empty-st { text-align:center; padding:48px 24px; }
+.empty-st .ei { font-size:3.5rem; margin-bottom:12px; }
+.empty-st h3 { font-size:1rem; font-weight:700; margin-bottom:6px; }
+.empty-st p { font-size:0.85rem; color:var(--text2); }
+
+/* SUCCESS */
+.suc-screen { text-align:center; padding:60px 24px; }
+.suc-ico { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,var(--verified),#22c55e); display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 20px; box-shadow:0 8px 24px rgba(22,163,74,0.3); animation:popIn 0.4s ease; }
+.suc-screen h2 { font-size:1.3rem; font-weight:800; margin-bottom:10px; }
+.suc-screen p { font-size:0.875rem; color:var(--text2); line-height:1.6; margin-bottom:24px; max-width:280px; margin-left:auto; margin-right:auto; }
+
+/* TOAST */
+.toast { position:fixed; bottom:calc(var(--bottom-h) + 12px); left:50%; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--text); color:white; padding:11px 20px; border-radius:100px; font-size:0.85rem; font-weight:500; z-index:300; transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275); white-space:nowrap; max-width:90vw; box-shadow:var(--shadow-lg); }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+/* MAP */
+.map-card { background:var(--white); border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom:16px; }
+.map-card-title { font-size:0.9rem; font-weight:700; padding:14px 16px 10px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+#detail-map { width:100%; height:200px; background:linear-gradient(135deg,#E8F0FD,#C7D9F8); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+.map-placeholder { text-align:center; }
+.map-placeholder .map-pin { font-size:2.5rem; animation:bounce 1.5s infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.map-placeholder p { font-size:0.82rem; color:var(--primary); font-weight:600; margin-top:6px; }
+.map-placeholder small { font-size:0.72rem; color:var(--text3); display:block; margin-top:2px; }
+.map-open-btn { position:absolute; bottom:10px; right:10px; background:var(--primary); color:white; border:none; border-radius:20px; padding:6px 14px; font-family:'Inter',sans-serif; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(26,86,196,0.4); transition:all 0.2s; }
+.map-open-btn:hover { background:var(--primary-dark); transform:translateY(-1px); }
+.map-addr { padding:10px 16px 14px; font-size:0.82rem; color:var(--text2); display:flex; align-items:flex-start; gap:8px; line-height:1.5; }
+.map-addr-ico { font-size:1rem; flex-shrink:0; margin-top:1px; }
+
+/* GPS BUTTON in form */
+.loc-section { position:relative; }
+.gps-btn { width:100%; background:var(--primary-light); color:var(--primary); border:1.5px dashed var(--primary); border-radius:var(--radius-sm); padding:12px; font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; margin-bottom:10px; }
+.gps-btn:hover { background:var(--primary); color:white; border-style:solid; }
+.gps-btn.loading { opacity:0.7; cursor:not-allowed; }
+.loc-preview { background:var(--primary-light); border:1px solid rgba(26,86,196,0.2); border-radius:var(--radius-sm); padding:10px 12px; display:none; align-items:center; gap:10px; margin-bottom:10px; }
+.loc-preview.show { display:flex; }
+.loc-preview-txt { flex:1; font-size:0.78rem; color:var(--primary); font-weight:600; line-height:1.4; }
+.loc-clear { background:none; border:none; color:var(--text3); cursor:pointer; font-size:1rem; padding:0; flex-shrink:0; }
+.loc-map-mini { width:100%; height:130px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border); background:linear-gradient(135deg,#E8F0FD,#C7D9F8); display:none; align-items:center; justify-content:center; position:relative; margin-bottom:10px; }
+.loc-map-mini.show { display:flex; }
+.loc-pin-mini { font-size:2rem; animation:bounce 1.5s infinite; }
+
+/* WAVE PAYMENT */
+.wave-account-box { background:linear-gradient(135deg,#E8F4FF,#D0E8FF); border:2px solid #1A56C4; border-radius:var(--radius); padding:16px; margin-bottom:16px; }
+.wave-logo-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.wave-logo { width:44px; height:44px; background:linear-gradient(135deg,#1A56C4,#2563EB); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+.wave-account-label { font-size:0.72rem; color:var(--text2); font-weight:600; text-transform:uppercase; letter-spacing:0.4px; }
+.wave-account-name { font-size:0.9rem; font-weight:800; color:var(--text); }
+.wave-number-display { background:white; border-radius:var(--radius-sm); padding:12px 14px; display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; border:1px solid rgba(26,86,196,0.2); }
+.wave-number-display span { font-size:1.1rem; font-weight:900; color:var(--primary); letter-spacing:1px; }
+.wave-copy-btn { background:var(--primary); color:white; border:none; border-radius:6px; padding:6px 12px; font-family:'Inter',sans-serif; font-size:0.75rem; font-weight:700; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+.wave-copy-btn:hover { background:var(--primary-dark); }
+.wave-copy-btn.copied { background:var(--verified); }
+.wave-instructions { display:flex; flex-direction:column; gap:8px; }
+.wave-step-item { display:flex; align-items:flex-start; gap:10px; font-size:0.82rem; color:var(--text2); line-height:1.4; }
+.wave-step-num { width:22px; height:22px; border-radius:50%; background:var(--primary); color:white; font-size:0.7rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+.wave-open-btn { width:100%; background:linear-gradient(135deg,#1A56C4,#2563EB); color:white; border:none; border-radius:var(--radius); padding:15px; font-family:'Inter',sans-serif; font-size:0.95rem; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; box-shadow:0 4px 16px rgba(26,86,196,0.35); }
+.wave-open-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(26,86,196,0.45); }
+.wave-open-ico { font-size:1.3rem; }
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="app-logo"><div class="app-logo-icon">🏠</div>MyHome</div>
+  <div class="nav-actions">
+    <button class="nav-icon-btn" onclick="showToast('🔔 Aucune nouvelle notification')">🔔<span class="notif-dot"></span></button>
+    <button class="nav-icon-btn" onclick="openAuth()">👤</button>
+  </div>
+</nav>
+
+<!-- PAGE ACCUEIL -->
+<div id="page-home" class="page active">
+  <div class="home-search-bar">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input class="search-inp" placeholder="Rechercher un logement..." oninput="liveSearch(this.value)">
+    </div>
+  </div>
+  <div class="chips-scroll" id="home-chips">
+    <button class="chip active" onclick="filterChip(this,'','')">Tous</button>
+    <button class="chip" onclick="filterChip(this,'Dakar','city')">Dakar</button>
+    <button class="chip" onclick="filterChip(this,'Abidjan','city')">Abidjan</button>
+    <button class="chip" onclick="filterChip(this,'200000','price')">≤ 200K</button>
+    <button class="chip" onclick="filterChip(this,'Studio','type')">Studio</button>
+    <button class="chip" onclick="filterChip(this,'Appartement','type')">Appartement</button>
+    <button class="chip" onclick="filterChip(this,'Chambre','type')">Chambre</button>
+    <button class="chip" onclick="filterChip(this,'premium','opt')">⭐ Premium</button>
+  </div>
+  <div class="sec-hdr"><h2>⭐ Annonces Premium</h2><button class="see-all" onclick="showPage('search')">Voir tout</button></div>
+  <div class="hlist" id="home-premium"></div>
+  <div class="sec-hdr"><h2>🆕 Logements récents</h2><button class="see-all" onclick="showPage('search')">Voir tout</button></div>
+  <div class="hlist" id="home-recent"></div>
+</div>
+
+<!-- PAGE RECHERCHE -->
+<div id="page-search" class="page">
+  <div class="search-pg-hdr">
+    <div class="spg-row">
+      <div class="spg-inp-wrap">
+        <span class="spg-ico">🔍</span>
+        <input class="spg-inp" id="s-q" placeholder="Ville, type, quartier…">
+      </div>
+      <button class="flt-btn" onclick="toggleFlt()">⚙️</button>
+    </div>
+    <div class="flt-panel" id="flt-panel" style="display:none;">
+      <select class="flt-sel" id="f-city"><option value="">Toutes les villes</option><option>Dakar</option><option>Abidjan</option><option>Douala</option><option>Kinshasa</option><option>Lomé</option><option>Bamako</option></select>
+      <select class="flt-sel" id="f-type"><option value="">Tous types</option><option>Studio</option><option>Chambre</option><option>Appartement</option></select>
+      <input class="flt-sel" type="number" id="f-min" placeholder="Prix min (FCFA)">
+      <input class="flt-sel" type="number" id="f-max" placeholder="Prix max (FCFA)">
+      <select class="flt-sel" id="f-opt"><option value="">Tous</option><option value="premium">⭐ Premium</option><option value="verified">✅ Vérifiés</option></select>
+      <button class="flt-apply" onclick="applyFilters()">🔍 Appliquer</button>
+    </div>
+  </div>
+  <div class="res-info"><span id="res-count">Chargement…</span></div>
+  <div class="slist" id="s-cards"></div>
+</div>
+
+<!-- PAGE DÉTAIL -->
+<div id="page-detail" class="page">
+  <div class="detail-top">
+    <button class="back-btn" onclick="goBack()">←</button>
+    <h2 id="d-title">Détail</h2>
+    <button class="dfav-btn" id="d-fav" onclick="toggleDFav()">♡</button>
+  </div>
+  <div class="detail-img-area" id="d-emoji">🏠<div class="detail-dots"><div class="dot act"></div><div class="dot"></div><div class="dot"></div></div></div>
+  <div class="detail-cnt">
+    <div class="detail-name" id="d-name">Appartement</div>
+    <div class="detail-loc" id="d-loc">📍 Dakar</div>
+    <div class="detail-price" id="d-price">150 000 <span>FCFA / mois</span></div>
+    <div class="badges-row" id="d-badges"></div>
+    <div class="chips-row" id="d-chips"></div>
+    <div class="sec-ttl">📋 Description</div>
+    <div class="detail-desc" id="d-desc"></div>
+
+    <div class="map-card" id="d-map-card">
+      <div class="map-card-title">📍 Localisation</div>
+      <div id="detail-map">
+        <div class="map-placeholder">
+          <div class="map-pin">📍</div>
+          <p id="d-map-quartier">Ngor, Dakar</p>
+          <small id="d-map-coords"></small>
+        </div>
+        <button class="map-open-btn" onclick="openDetailMap()">🗺️ Ouvrir sur Maps</button>
+      </div>
+      <div class="map-addr">
+        <span class="map-addr-ico">🏠</span>
+        <span id="d-map-addr">Adresse complète non renseignée</span>
+      </div>
+    </div>
+    <div class="contact-card">
+      <div class="cc-title">Contacter le propriétaire</div>
+      <div class="owner-row">
+        <div class="owner-av" id="o-av">A</div>
+        <div><div class="owner-name" id="o-name">Amadou</div><div class="owner-sub">Propriétaire · Membre vérifié</div></div>
+      </div>
+      <div class="cbtns">
+        <button class="btn-call" onclick="callOwner()">📞 Appeler</button>
+        <button class="btn-chat" onclick="openChat()">💬 Chat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE PUBLIER -->
+<div id="page-publish" class="page">
+  <div id="pub-form">
+    <div class="pg-hdr"><h1>➕ Publier un logement</h1><p>Remplissez le formulaire ci-dessous</p></div>
+    <div class="form-sec">
+      <div class="form-card">
+        <div class="fc-title">📋 Informations générales</div>
+        <div class="form-row">
+          <div class="form-grp"><label class="form-lbl">Type *</label><select class="form-sel" id="pub-type"><option>Studio</option><option>Chambre</option><option>Appartement</option><option>Villa</option></select></div>
+          <div class="form-grp"><label class="form-lbl">Ville *</label><select class="form-sel" id="pub-city"><option>Dakar</option><option>Abidjan</option><option>Douala</option><option>Kinshasa</option><option>Lomé</option><option>Bamako</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-grp"><label class="form-lbl">Prix/mois (FCFA) *</label><input type="number" class="form-inp" id="pub-price" placeholder="Ex: 80 000"></div>
+          <div class="form-grp"><label class="form-lbl">Quartier</label><input type="text" class="form-inp" id="pub-quartier" placeholder="Ex: Plateau"></div>
+        </div>
+        <div class="form-grp"><label class="form-lbl">Description *</label><textarea class="form-ta" id="pub-desc" placeholder="Décrivez votre logement…"></textarea></div>
+      </div>
+
+      <div class="form-card">
+        <div class="fc-title">📍 Localisation</div>
+        <div class="form-grp">
+          <label class="form-lbl">Adresse complète</label>
+          <input type="text" class="form-inp" id="pub-adresse" placeholder="Ex: Rue 10, Villa 24, Ngor, Dakar">
+        </div>
+        <div class="loc-section">
+          <button class="gps-btn" id="gps-btn" onclick="detectGPS()">
+            <span id="gps-btn-ico">📡</span>
+            <span id="gps-btn-txt">Détecter ma position automatiquement</span>
+          </button>
+          <div class="loc-preview" id="loc-preview">
+            <span style="font-size:1.2rem;">📍</span>
+            <div class="loc-preview-txt" id="loc-preview-txt">Position détectée</div>
+            <button class="loc-clear" onclick="clearGPS()" title="Effacer">✕</button>
+          </div>
+          <div class="loc-map-mini" id="loc-map-mini">
+            <div style="text-align:center;">
+              <div class="loc-pin-mini">📍</div>
+              <div style="font-size:0.72rem;color:var(--primary);font-weight:600;margin-top:4px;" id="loc-coords"></div>
+            </div>
+            <button class="map-open-btn" onclick="openMapExternal()">🗺️ Voir sur la carte</button>
+          </div>
+          <div style="font-size:0.72rem;color:var(--text3);text-align:center;">ou entrez l'adresse manuellement ci-dessus</div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="fc-title">📸 Photos & Vidéo</div>
+
+        <!-- Input photos — visible mais transparent -->
+        <label for="input-photos" style="display:block;cursor:pointer;">
+          <input type="file" id="input-photos" accept="image/*" multiple style="position:absolute;opacity:0;width:1px;height:1px;" onchange="handlePhotos(this)">
+          <div class="upload-z">
+            <div class="uz-icon">📷</div>
+            <div class="uz-txt"><span>Appuyer pour ajouter des photos</span><br>JPG, PNG — max 10</div>
+          </div>
+        </label>
+
+        <!-- Aperçu photos -->
+        <div id="photos-preview" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:10px;"></div>
+
+        <!-- Input vidéo — visible mais transparent -->
+        <label for="input-video" style="display:block;cursor:pointer;">
+          <input type="file" id="input-video" accept="video/*" style="position:absolute;opacity:0;width:1px;height:1px;" onchange="handleVideo(this)">
+          <div class="upload-z">
+            <div class="uz-icon">🎬</div>
+            <div class="uz-txt"><span>Appuyer pour ajouter une vidéo</span> — Payant<br>MP4 — max 100 Mo</div>
+          </div>
+        </label>
+
+        <!-- Aperçu vidéo -->
+        <div id="video-preview" style="display:none;margin-bottom:10px;"></div>
+
+      </div>
+      <div class="form-card">
+        <div class="fc-title">⭐ Type de publication</div>
+        <div class="plan-opts">
+          <label class="plan-opt sel" onclick="selPlan(this)"><input type="radio" name="pub-plan" value="normal" checked><div class="plan-radio"></div><div class="plan-ico">📝</div><div><div class="plan-name">Normale</div><div class="plan-dsc">Visible dans la liste standard</div></div><div class="plan-prc">1 000 FCFA</div></label>
+          <label class="plan-opt" onclick="selPlan(this)"><input type="radio" name="pub-plan" value="premium"><div class="plan-radio"></div><div class="plan-ico">⭐</div><div><div class="plan-name">Premium</div><div class="plan-dsc">En tête de liste + badge</div></div><div class="plan-prc">2 500 FCFA</div></label>
+          <label class="plan-opt" onclick="selPlan(this)"><input type="radio" name="pub-plan" value="verified"><div class="plan-radio"></div><div class="plan-ico">✅</div><div><div class="plan-name">Vérifié</div><div class="plan-dsc">Badge logement vérifié</div></div><div class="plan-prc">2 500 FCFA</div></label>
+        </div>
+      </div>
+      <button class="pub-btn" onclick="publishListing()">🚀 Publier maintenant</button>
+    </div>
+  </div>
+  <div id="pub-success" style="display:none;">
+    <div class="suc-screen">
+      <div class="suc-ico">✓</div>
+      <h2>Annonce publiée !</h2>
+      <p>Votre logement est visible par des milliers de locataires.</p>
+      <button class="pub-btn" style="max-width:260px;margin:0 auto;display:block;" onclick="showPage('home')">🏠 Retour à l'accueil</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE FAVORIS -->
+<div id="page-favs" class="page">
+  <div class="favs-hdr"><h2>❤️ Mes Favoris</h2><p>Logements sauvegardés</p></div>
+  <div class="hlist" style="padding:12px 16px;" id="favs-list"></div>
+</div>
+
+<!-- PAGE PROFIL -->
+<div id="page-profile" class="page">
+  <div class="prof-top">
+    <div class="prof-av-row">
+      <div class="prof-av">A</div>
+      <div><div class="prof-name">Amadou Diallo</div><div class="prof-role">Propriétaire · Membre depuis 2024</div></div>
+    </div>
+    <div class="prof-stats">
+      <div class="prof-stat"><div class="pstat-num" id="p-ann">2</div><div class="pstat-lbl">Annonces</div></div>
+      <div class="prof-stat"><div class="pstat-num" id="p-fav">0</div><div class="pstat-lbl">Favoris</div></div>
+      <div class="prof-stat"><div class="pstat-num">⭐ 4.8</div><div class="pstat-lbl">Note</div></div>
+    </div>
+  </div>
+  <div class="ptabs">
+    <button class="ptab act" onclick="swPTab(this,'pt-ann')">Mes annonces</button>
+    <button class="ptab" onclick="swPTab(this,'pt-param')">Paramètres</button>
+  </div>
+  <div id="pt-ann" class="ptab-c act"><div id="prof-listings"></div></div>
+  <div id="pt-param" class="ptab-c">
+    <div class="form-card" style="margin-top:4px;">
+      <div class="fc-title">👤 Informations personnelles</div>
+      <div class="form-row">
+        <div class="form-grp"><label class="form-lbl">Nom</label><input class="form-inp" value="Amadou Diallo"></div>
+        <div class="form-grp"><label class="form-lbl">Email</label><input class="form-inp" type="email" value="amadou@email.com"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-grp"><label class="form-lbl">Téléphone</label><input class="form-inp" type="tel" value="+221 77 123 45 67"></div>
+        <div class="form-grp"><label class="form-lbl">Ville</label><select class="form-sel"><option>Dakar</option></select></div>
+      </div>
+      <button class="flt-apply" style="margin-top:4px;" onclick="showToast('✅ Profil mis à jour !')">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item active" id="bn-home" onclick="showPage('home')"><span class="bnav-icon">🏠</span><span class="bnav-label">Accueil</span></button>
+  <button class="bnav-item" id="bn-favs" onclick="showPage('favs')"><span class="bnav-icon">🤍</span><span class="bnav-label">Favoris</span></button>
+  <div class="bnav-pub-wrap"><button class="bnav-pub" onclick="showPage('publish')">＋</button><span class="bnav-pub-lbl">Publier</span></div>
+  <button class="bnav-item" id="bn-search" onclick="showPage('search')"><span class="bnav-icon">🔍</span><span class="bnav-label">Recherche</span></button>
+  <button class="bnav-item" id="bn-profile" onclick="showPage('profile')"><span class="bnav-icon">👤</span><span class="bnav-label">Profil</span></button>
+</nav>
+
+<!-- CHAT MODAL -->
+<div class="modal-overlay" id="chat-modal" onclick="closeModal(event,'chat-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-ttl">💬 Chat avec le propriétaire</div>
+    <div class="modal-body">
+      <div class="chat-msgs" id="chat-msgs">
+        <div class="msg recv"><div class="msg-bubble">Bonjour ! Le logement est-il disponible ?</div><div class="msg-time">Hier 14h30</div></div>
+        <div class="msg sent"><div class="msg-bubble">Oui, disponible ! Voulez-vous visiter ?</div><div class="msg-time">Hier 14h35</div></div>
+        <div class="msg recv"><div class="msg-bubble">Oui avec plaisir ! Quand êtes-vous libre ?</div><div class="msg-time">Hier 14h36</div></div>
+      </div>
+      <div class="chat-inp-row">
+        <input class="chat-inp" id="c-inp" placeholder="Écrire un message…" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="chat-send" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal" onclick="closeModal(event,'auth-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-ttl">🏠 MyHome</div>
+    <div class="modal-sub">Connectez-vous pour profiter de toutes les fonctionnalités</div>
+    <div class="modal-body">
+      <div class="atabs">
+        <button class="atab act" onclick="swATab(this,'at-login')">Connexion</button>
+        <button class="atab" onclick="swATab(this,'at-reg')">Inscription</button>
+      </div>
+
+      <!-- CONNEXION -->
+      <div id="at-login" class="auth-form">
+        <div class="form-grp">
+          <label class="form-lbl">Email</label>
+          <input class="form-inp" id="login-email" type="email" placeholder="votre@email.com">
+        </div>
+        <div class="form-grp">
+          <label class="form-lbl">Mot de passe</label>
+          <input class="form-inp" id="login-password" type="password" placeholder="••••••••">
+        </div>
+        <div id="login-error" style="color:#DC2626;font-size:0.8rem;display:none;padding:8px;background:rgba(220,38,38,0.08);border-radius:6px;"></div>
+        <button class="auth-sub" id="login-btn" onclick="doLogin()">Se connecter</button>
+        <div style="text-align:center;font-size:0.78rem;color:var(--text3);margin-top:10px;">
+          <span style="color:var(--primary);cursor:pointer;" onclick="doForgotPassword()">Mot de passe oublié ?</span>
+        </div>
+      </div>
+
+      <!-- INSCRIPTION -->
+      <div id="at-reg" class="auth-form" style="display:none;">
+        <div class="form-grp">
+          <label class="form-lbl">Je suis…</label>
+          <div class="role-row">
+            <button class="role-btn sel" id="role-locataire" onclick="selRole(this,'locataire')">Locataire</button>
+            <button class="role-btn" id="role-proprietaire" onclick="selRole(this,'proprietaire')">Propriétaire</button>
+          </div>
+        </div>
+        <div class="form-grp">
+          <label class="form-lbl">Nom complet</label>
+          <input class="form-inp" id="reg-nom" placeholder="Amadou Diallo">
+        </div>
+        <div class="form-grp">
+          <label class="form-lbl">Email</label>
+          <input class="form-inp" id="reg-email" type="email" placeholder="votre@email.com">
+        </div>
+        <div class="form-grp">
+          <label class="form-lbl">Téléphone</label>
+          <input class="form-inp" id="reg-tel" type="tel" placeholder="+221 77 000 00 00">
+        </div>
+        <div class="form-grp">
+          <label class="form-lbl">Mot de passe</label>
+          <input class="form-inp" id="reg-password" type="password" placeholder="Min. 8 caractères">
+        </div>
+        <div id="reg-error" style="color:#DC2626;font-size:0.8rem;display:none;padding:8px;background:rgba(220,38,38,0.08);border-radius:6px;"></div>
+        <button class="auth-sub" id="reg-btn" onclick="doRegister()">Créer mon compte</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="conf-modal" onclick="closeModal(event,'conf-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div class="conf-icon" id="conf-ico">⚠️</div>
+      <div class="modal-ttl" id="conf-ttl">Confirmer</div>
+      <div class="modal-sub" id="conf-msg">Êtes-vous sûr ?</div>
+      <div class="conf-acts"><button class="conf-cancel" onclick="closeModalById('conf-modal')">Annuler</button><button class="conf-ok" id="conf-ok">Confirmer</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- WAVE PAYMENT MODAL -->
+<div class="modal-overlay" id="pay-modal" onclick="closeModal(event,'pay-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+
+    <!-- SCREEN 1 : Résumé + bouton Wave -->
+    <div id="psc1">
+      <div class="modal-ttl">🌊 Paiement via Wave</div>
+      <div class="modal-sub">Paiement simple et rapide</div>
+      <div class="modal-body">
+
+        <!-- Résumé commande -->
+        <div class="pay-sum">
+          <div class="psr"><span>Plan choisi</span><span id="pp-plan">Premium ⭐</span></div>
+          <div class="psr"><span>Durée</span><span id="pp-dur">1 mois</span></div>
+          <div class="pst"><span>💰 Total à payer</span><span id="pp-amt">2 500 FCFA</span></div>
+        </div>
+
+        <!-- Compte Wave du propriétaire -->
+        <div class="wave-account-box">
+          <div class="wave-logo-row">
+            <div class="wave-logo">🌊</div>
+            <div>
+              <div class="wave-account-label">Envoyer à ce compte Wave</div>
+              <div class="wave-account-name">MyHome — Paiements</div>
+            </div>
+          </div>
+          <div class="wave-number-display">
+            <span id="wave-num-display">+221 77●●●● ●●●●</span>
+            <button class="wave-copy-btn" onclick="copyWaveNum()" id="wave-copy-btn">📋 Copier</button>
+          </div>
+          <div class="wave-instructions">
+            <div class="wave-step-item"><span class="wave-step-num">1</span><span>Ouvrez votre application <strong>Wave</strong></span></div>
+            <div class="wave-step-item"><span class="wave-step-num">2</span><span>Envoyez <strong id="wave-montant-inst">2 500 FCFA</strong> au numéro ci-dessus</span></div>
+            <div class="wave-step-item"><span class="wave-step-num">3</span><span>Revenez ici et confirmez le paiement</span></div>
+          </div>
+        </div>
+
+        <!-- Bouton ouvrir Wave app -->
+        <button class="wave-open-btn" onclick="openWaveApp()">
+          <span class="wave-open-ico">🌊</span>
+          Copier le numéro et ouvrir Wave
+        </button>
+
+        <!-- Instructions qui apparaissent après le clic -->
+        <div id="wave-instructions-after" style="display:none;background:rgba(22,163,74,0.08);border:1.5px solid rgba(22,163,74,0.25);border-radius:var(--radius-sm);padding:14px;margin-top:12px;">
+          <div style="font-weight:700;font-size:0.85rem;color:var(--verified);margin-bottom:10px;">✅ Numéro copié ! Suivez ces étapes :</div>
+          <div class="wave-step-item" style="margin-bottom:6px;"><span class="wave-step-num" style="background:var(--verified);">1</span><span>Ouvrez l'application <strong>Wave</strong> sur votre téléphone</span></div>
+          <div class="wave-step-item" style="margin-bottom:6px;"><span class="wave-step-num" style="background:var(--verified);">2</span><span>Appuyez sur <strong>"Envoyer"</strong></span></div>
+          <div class="wave-step-item" style="margin-bottom:6px;"><span class="wave-step-num" style="background:var(--verified);">3</span><span>Collez le numéro copié et entrez <strong id="wave-montant-after">2 500 FCFA</strong></span></div>
+          <div class="wave-step-item"><span class="wave-step-num" style="background:var(--verified);">4</span><span>Revenez ici et confirmez ci-dessous</span></div>
+        </div>
+
+        <div style="text-align:center;margin:12px 0;font-size:0.78rem;color:var(--text3);">— ou —</div>
+
+        <!-- Bouton confirmer manuellement -->
+        <button class="pay-btn" style="background:var(--bg);color:var(--primary);border:2px solid var(--primary);" onclick="goPS(2)">
+          ✅ J'ai déjà envoyé le paiement
+        </button>
+
+        <div style="text-align:center;font-size:0.7rem;color:var(--text3);margin-top:12px;">
+          ⚠️ Conservez votre reçu Wave comme preuve de paiement
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2 : Confirmation -->
+    <div id="psc2" style="display:none;">
+      <div class="modal-ttl">✅ Confirmer le paiement</div>
+      <div class="modal-sub">Entrez votre numéro Wave pour confirmer</div>
+      <div class="modal-body">
+        <div class="pay-sum" style="margin-bottom:16px;">
+          <div class="psr"><span>Montant envoyé</span><span id="pp-a2" style="color:var(--primary);font-weight:800;">2 500 FCFA</span></div>
+          <div class="psr"><span>Vers</span><span>+221 77●●●● ●●●●</span></div>
+        </div>
+
+        <div class="form-grp" style="margin-bottom:14px;">
+          <label class="form-lbl">Votre numéro Wave (expéditeur)</label>
+          <div class="phone-row">
+            <div class="phone-pfx">🇸🇳 +221</div>
+            <input class="phone-inp" id="pp-phone" type="tel" placeholder="77 000 00 00" maxlength="12">
+          </div>
+          <div style="font-size:0.72rem;color:var(--text3);margin-top:6px;">Ce numéro nous permet de vérifier votre paiement</div>
+        </div>
+
+        <div class="form-grp" style="margin-bottom:14px;">
+          <label class="form-lbl">Référence Wave (optionnel)</label>
+          <input class="form-inp" id="pp-ref-inp" placeholder="Ex: WV-2024-XXXXXXX">
+          <div style="font-size:0.72rem;color:var(--text3);margin-top:6px;">Trouvez-la dans votre historique Wave</div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button class="pay-btn" style="flex:0 0 48px;background:var(--bg);color:var(--text2);" onclick="goPS(1)">←</button>
+          <button class="pay-btn" onclick="confirmWave()">🌊 Confirmer mon paiement</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3 : Succès -->
+    <div id="psc3" style="display:none;text-align:center;">
+      <div class="modal-body" style="padding-top:8px;">
+        <div class="pay-suc-ico">✓</div>
+        <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px;">Paiement confirmé !</div>
+        <div style="font-size:0.82rem;color:var(--text2);margin-bottom:20px;line-height:1.6;">
+          Votre annonce est maintenant activée.<br>Les locataires peuvent la voir immédiatement.
+        </div>
+        <div class="rcpt">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px;">Reçu de paiement</div>
+          <div class="rcpt-row"><span>Référence</span><strong id="pp-ref">MYH-2024-XXXXX</strong></div>
+          <div class="rcpt-row"><span>Plan</span><strong id="pp-rplan">Premium ⭐</strong></div>
+          <div class="rcpt-row"><span>Montant</span><strong id="pp-ramt">2 500 FCFA</strong></div>
+          <div class="rcpt-row"><span>Via</span><strong>🌊 Wave</strong></div>
+          <div class="rcpt-row"><span>Numéro</span><strong id="pp-rphone">+221 77 000 00 00</strong></div>
+          <div class="rcpt-row"><span>Date</span><strong id="pp-rdate"></strong></div>
+          <div class="rcpt-row"><span>Statut</span><strong style="color:var(--verified);">✅ Confirmé</strong></div>
+        </div>
+        <button class="pay-btn" onclick="closeModalById('pay-modal');showPage('profile');">Voir mes annonces →</button>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:12px;">
+          📱 Un SMS de confirmation vous sera envoyé
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="pay-ftr">
+      <span>🌊 Paiement direct via</span>
+      <span style="background:#1A56C4;color:white;font-weight:900;font-size:0.65rem;padding:2px 6px;border-radius:3px;">WAVE</span>
+      <span>· Sénégal</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+
+// ══ SUPABASE CONFIG ══
+const SUPABASE_URL = 'https://bffbozlamqdlbstgrnyo.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Ayb_Uik_T5U0Pt3Loqghmw_dRNn955F';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Charger les annonces depuis Supabase
+async function loadListingsFromDB() {
+  try {
+    const { data, error } = await supabase
+      .from('logements')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      // Convertir format Supabase vers format app
+      var dbListings = data.map(function(l) {
+        return {
+          id: l.id,
+          type: l.type || 'Appartement',
+          city: l.ville || 'Dakar',
+          quartier: l.quartier || '',
+          price: l.prix || 0,
+          desc: l.description || '',
+          premium: l.premium || false,
+          verified: l.verifie || false,
+          img: l.premium ? '#1A56C4' : '#4A90D9',
+          owner: l.proprietaire || 'Propriétaire',
+          adresse: l.adresse || '',
+          pieces: 1,
+          sup: 0
+        };
+      });
+      // Ajouter aux annonces existantes
+      dbListings.forEach(function(l) {
+        if (!LISTINGS.find(function(x) { return x.id === l.id; })) {
+          LISTINGS.push(l);
+        }
+      });
+      renderHome();
+      renderSearch(LISTINGS);
+    }
+  } catch(e) {
+    console.log('Supabase:', e.message);
+  }
+}
+
+// Sauvegarder une annonce dans Supabase
+async function saveListingToDB(listing) {
+  try {
+    const { data, error } = await supabase
+      .from('logements')
+      .insert([{
+        type: listing.type,
+        ville: listing.city,
+        quartier: listing.quartier,
+        prix: listing.price,
+        description: listing.desc,
+        proprietaire: listing.owner,
+        telephone: listing.telephone || '',
+        adresse: listing.adresse || '',
+        premium: listing.premium || false,
+        verifie: false,
+        photo_url: ''
+      }])
+      .select();
+
+    if (error) throw error;
+    showToast('Annonce sauvegardée !');
+    return data[0];
+  } catch(e) {
+    console.log('Erreur sauvegarde:', e.message);
+    showToast('Annonce publiée localement');
+    return null;
+  }
+}
+const LISTINGS = [
+  {id:1,type:'Studio',city:'Dakar',quartier:'Ngor',price:150000,pieces:1,sup:20,desc:'Studio moderne tout équipé. Climatisation, wifi, eau chaude. Résidence sécurisée avec gardien 24h/7. Proche plage et commerces.',premium:true,verified:true,img:'#4A90D9',owner:'Aminata Sy',adresse:'Villa 12, Rue de la Plage, Ngor, Dakar',coords:{lat:14.7465,lng:-17.5133}},
+  {id:2,type:'Chambre',city:'Dakar',quartier:'Liberté 6',price:80000,pieces:1,sup:15,desc:'Belle chambre individuelle meublée dans appartement partagé. Cuisine et salle de bain communes. Quartier calme et bien desservi.',premium:true,verified:false,img:'#E8A838',owner:'Kofi Mensah',adresse:'Immeuble Ndiaye, Liberté 6, Dakar',coords:{lat:14.7295,lng:-17.4675}},
+  {id:3,type:'Appartement',city:'Dakar',quartier:'Sacré-Cœur',price:250000,pieces:3,sup:90,desc:'Grand appartement F3 avec salon, cuisine équipée, 2 chambres. Terrasse, parking. Quartier résidentiel calme et sécurisé.',premium:false,verified:true,img:'#5BAD6F',owner:'Marie Ngono',adresse:'Résidence Les Flamboyants, Sacré-Cœur 3, Dakar',coords:{lat:14.7192,lng:-17.4724}},
+  {id:4,type:'Chambre',city:'Dakar',quartier:'Pikine',price:50000,pieces:1,sup:12,desc:'Petite chambre simple dans villa. Environnement familial, eau courante, électricité incluse. Idéal pour étudiant.',premium:false,verified:false,img:'#9B59B6',owner:'Ibrahima Fall',adresse:'Cité Ballabey, Pikine Est, Dakar',coords:{lat:14.7476,lng:-17.3952}},
+  {id:5,type:'Appartement',city:'Abidjan',quartier:'Cocody',price:200000,pieces:2,sup:65,desc:'Appartement F2 moderne en résidence sécurisée. Climatisation dans toutes les pièces. Groupe électrogène.',premium:true,verified:true,img:'#E74C3C',owner:'Fati Kone',adresse:'Résidence Bonheur, Cocody Angré, Abidjan',coords:{lat:5.3599,lng:-3.9742}},
+  {id:6,type:'Studio',city:'Douala',quartier:'Akwa',price:75000,pieces:1,sup:22,desc:'Studio neuf non meublé, accès internet fibre, eau courante permanente. Bail 6 mois minimum.',premium:false,verified:false,img:'#1ABC9C',owner:'Sékou Traoré',adresse:'Boulevard de la Liberté, Akwa, Douala',coords:{lat:4.0511,lng:9.7085}},
+];
+
+let curId=null, prevPg='home', favs=new Set([2]), myList=[1,2];
+
+const PLANS={normal:{name:'Publication normale',price:1000,dur:'Unique',emoji:'📝'},premium:{name:'Premium ⭐',price:2500,dur:'1 mois',emoji:'⭐'},verified:{name:'Logement vérifié ✅',price:2500,dur:'Unique',emoji:'✅'}};
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  const m={home:'bn-home',favs:'bn-favs',search:'bn-search',profile:'bn-profile'};
+  if(m[id]) document.getElementById(m[id]).classList.add('active');
+  if(id==='search') renderSearch(LISTINGS);
+  if(id==='profile') renderProf();
+  if(id==='favs') renderFavs();
+  if(id==='publish'){document.getElementById('pub-form').style.display='block';document.getElementById('pub-success').style.display='none';}
+  window.scrollTo(0,0);
+}
+function goBack(){showPage(prevPg);}
+
+function renderHCard(l,showAct=false){
+  var isFav=favs.has(l.id);
+  var m1=l.pieces>1?'<div class="hcard-meta-i">'+l.pieces+' Pieces</div>':'<div class="hcard-meta-i">'+l.type+'</div>';
+  var m2=l.sup?'<div class="hcard-meta-i">'+l.sup+' m2</div>':'';
+  var pbadge=l.premium?'<div class="hcard-pbadge">PREMIUM</div>':'';
+  var vbadge=l.verified?'<span class="vbadge">Verifie</span>':'';
+  var fav='<button class="hcard-fav '+(isFav?'act':'')+'" onclick="event.stopPropagation();togFav('+l.id+',this)">'+(isFav?'&hearts;':'&hearts;')+'</button>';
+  var actBtns=showAct?'<div style="display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #E5E7EB;"><button onclick="markSold('+l.id+')" style="flex:1;background:rgba(22,163,74,0.1);color:#16A34A;border:1.5px solid rgba(22,163,74,0.25);border-radius:6px;padding:7px;font-size:0.75rem;font-weight:700;cursor:pointer;">Preneur trouve</button><button onclick="delList('+l.id+')" style="flex:1;background:rgba(220,38,38,0.07);color:#DC2626;border:1.5px solid rgba(220,38,38,0.2);border-radius:6px;padding:7px;font-size:0.75rem;font-weight:700;cursor:pointer;">Supprimer</button></div>':'';
+  var imgStyle='background:'+l.img+';display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;font-weight:900;letter-spacing:1px;';
+  var imgTxt=l.type.substring(0,2).toUpperCase();
+  return '<div class="hcard '+(l.premium?'premium':'')+'" id="hc-'+l.id+'">'
+    +'<div class="hcard-img" style="'+imgStyle+'" onclick="openDetail('+l.id+')">'+pbadge+imgTxt+'</div>'
+    +'<div class="hcard-body">'
+    +'<div>'
+    +'<div class="hcard-title">'+l.type+(l.pieces>1?' F'+l.pieces:'')+' a '+l.quartier+'</div>'
+    +'<div class="hcard-price">'+l.price.toLocaleString('fr-FR')+' FCFA <span>/ mois</span>'+vbadge+'</div>'
+    +'<div class="hcard-loc">'+l.quartier+', '+l.city+'</div>'
+    +'</div>'
+    +'<div class="hcard-meta">'+m1+m2+fav+'</div>'
+    +actBtns
+    +'</div></div>';
+}
+
+function renderHome(list){
+  const d=list||LISTINGS;
+  const prem=d.filter(l=>l.premium), rec=d.filter(l=>!l.premium);
+  document.getElementById('home-premium').innerHTML=prem.length?prem.map(l=>renderHCard(l)).join(''):'<div class="empty-st"><div class="ei">📭</div><h3>Aucune annonce premium</h3></div>';
+  document.getElementById('home-recent').innerHTML=rec.length?rec.map(l=>renderHCard(l)).join(''):'<div class="empty-st"><div class="ei">📭</div><h3>Aucune annonce récente</h3></div>';
+}
+
+function filterChip(btn,val,key){
+  document.querySelectorAll('#home-chips .chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  if(!val){renderHome();return;}
+  let res=LISTINGS.filter(l=>{
+    if(key==='city') return l.city===val;
+    if(key==='type') return l.type===val;
+    if(key==='price') return l.price<=parseInt(val);
+    if(key==='opt') return val==='premium'?l.premium:l.verified;
+    return true;
+  });
+  renderHome(res);
+}
+
+function liveSearch(q){
+  if(!q){renderHome();return;}
+  q=q.toLowerCase();
+  renderHome(LISTINGS.filter(l=>l.type.toLowerCase().includes(q)||l.city.toLowerCase().includes(q)||l.quartier.toLowerCase().includes(q)||l.desc.toLowerCase().includes(q)));
+}
+
+let fltOpen=false;
+function toggleFlt(){fltOpen=!fltOpen;document.getElementById('flt-panel').style.display=fltOpen?'grid':'none';}
+
+function renderSearch(list){
+  document.getElementById('s-cards').innerHTML=list.length?list.map(l=>renderHCard(l)).join(''):'<div class="empty-st"><div class="ei">🔍</div><h3>Aucun résultat</h3><p>Essayez d\'autres critères</p></div>';
+  document.getElementById('res-count').innerHTML=`<strong>${list.length}</strong> logement${list.length>1?'s':''} trouvé${list.length>1?'s':''}`;
+}
+
+function applyFilters(){
+  const city=document.getElementById('f-city').value, type=document.getElementById('f-type').value;
+  const min=parseInt(document.getElementById('f-min').value)||0, max=parseInt(document.getElementById('f-max').value)||Infinity;
+  const opt=document.getElementById('f-opt').value;
+  renderSearch(LISTINGS.filter(l=>{
+    if(city&&l.city!==city)return false;
+    if(type&&l.type!==type)return false;
+    if(l.price<min||l.price>max)return false;
+    if(opt==='premium'&&!l.premium)return false;
+    if(opt==='verified'&&!l.verified)return false;
+    return true;
+  }));
+}
+
+function openDetail(id){
+  const l=LISTINGS.find(x=>x.id===id); if(!l) return;
+  prevPg=document.querySelector('.page.active').id.replace('page-','');
+  curId=id;
+  document.getElementById('d-title').textContent=`${l.type} — ${l.city}`;
+  document.getElementById('d-emoji').innerHTML=`${l.emoji}<div class="detail-dots"><div class="dot act"></div><div class="dot"></div><div class="dot"></div></div>`;
+  document.getElementById('d-name').textContent=`${l.type}${l.pieces>1?' F'+l.pieces:''} à ${l.quartier}`;
+  document.getElementById('d-loc').textContent=`📍 ${l.quartier}, ${l.city}`;
+  document.getElementById('d-price').innerHTML=`${l.price.toLocaleString('fr-FR')} <span>FCFA / mois</span>`;
+  document.getElementById('d-desc').textContent=l.desc;
+  document.getElementById('o-av').textContent=l.owner[0];
+  document.getElementById('o-name').textContent=l.owner;
+  const bd=document.getElementById('d-badges'); bd.innerHTML='';
+  if(l.premium) bd.innerHTML+='<span class="badge badge-prem">⭐ Annonce sponsorisée</span>';
+  if(l.verified) bd.innerHTML+='<span class="badge badge-ver">✅ Logement vérifié</span>';
+  const chips=[['🏠',l.type],['📍',l.quartier],['🏙️',l.city]];
+  if(l.sup) chips.push(['📐',l.sup+'m²']);
+  if(l.pieces) chips.push(['🛏️',l.pieces+' pièce'+(l.pieces>1?'s':'')]);
+  document.getElementById('d-chips').innerHTML=chips.map(([i,t])=>`<div class="dchip">${i} ${t}</div>`).join('');
+
+  // Map section
+  document.getElementById('d-map-quartier').textContent = `${l.quartier}, ${l.city}`;
+  if(l.coords) {
+    document.getElementById('d-map-coords').textContent = `${l.coords.lat.toFixed(5)}, ${l.coords.lng.toFixed(5)}`;
+  } else {
+    document.getElementById('d-map-coords').textContent = 'Coordonnées non disponibles';
+  }
+  document.getElementById('d-map-addr').textContent = l.adresse || `${l.quartier}, ${l.city}`;
+
+  const isFav=favs.has(id), fb=document.getElementById('d-fav');
+  fb.textContent=isFav?'♥':'♡'; fb.classList.toggle('act',isFav);
+  showPage('detail');
+}
+
+function toggleDFav(){
+  if(!curId)return;
+  if(favs.has(curId)){favs.delete(curId);showToast('Retiré des favoris');}else{favs.add(curId);showToast('❤️ Ajouté aux favoris !');}
+  const isFav=favs.has(curId), fb=document.getElementById('d-fav');
+  fb.textContent=isFav?'♥':'♡'; fb.classList.toggle('act',isFav);
+  updFavCnt(); renderHome();
+}
+
+function togFav(id,btn){
+  if(favs.has(id)){favs.delete(id);btn.textContent='♡';btn.classList.remove('act');showToast('Retiré des favoris');}
+  else{favs.add(id);btn.textContent='♥';btn.classList.add('act');showToast('❤️ Ajouté aux favoris !');}
+  updFavCnt();
+  document.getElementById('bn-favs').querySelector('.bnav-icon').textContent=favs.size>0?'❤️':'🤍';
+}
+
+function updFavCnt(){const e=document.getElementById('p-fav');if(e)e.textContent=favs.size;}
+
+function renderFavs(){
+  const list=LISTINGS.filter(l=>favs.has(l.id));
+  document.getElementById('favs-list').innerHTML=list.length?list.map(l=>renderHCard(l)).join(''):'<div class="empty-st"><div class="ei">💔</div><h3>Aucun favori</h3><p>Appuyez sur ♡ pour sauvegarder</p></div>';
+}
+
+function renderProf(){
+  const mine=LISTINGS.filter(l=>myList.includes(l.id));
+  document.getElementById('prof-listings').innerHTML=mine.length?mine.map(l=>renderHCard(l,true)).join(''):'<div class="empty-st"><div class="ei">📭</div><h3>Aucune annonce</h3><p>Publiez votre premier logement</p></div>';
+  document.getElementById('p-ann').textContent=mine.length; updFavCnt();
+}
+
+function swPTab(btn,id){
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('act')); btn.classList.add('act');
+  document.querySelectorAll('.ptab-c').forEach(c=>c.classList.remove('act')); document.getElementById(id).classList.add('act');
+}
+
+function markSold(id){
+  openConf('🏠','Preneur trouvé ?','L\'annonce sera retirée de la liste.','✅ Oui, retirer',false,()=>{
+    myList=myList.filter(x=>x!==id); const i=LISTINGS.findIndex(x=>x.id===id); if(i!==-1)LISTINGS.splice(i,1);
+    favs.delete(id); renderProf(); renderHome(); renderFavs(); showToast('🎉 Félicitations ! Logement loué.');
+  });
+}
+
+function delList(id){
+  openConf('🗑️','Supprimer l\'annonce ?','Cette action est irréversible.','🗑️ Supprimer',true,()=>{
+    myList=myList.filter(x=>x!==id); const i=LISTINGS.findIndex(x=>x.id===id); if(i!==-1)LISTINGS.splice(i,1);
+    favs.delete(id); renderProf(); renderHome(); renderFavs(); showToast('🗑️ Annonce supprimée.');
+  });
+}
+
+function selPlan(el){document.querySelectorAll('.plan-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}
+function handlePhotos(input) {
+  var files = Array.from(input.files);
+  if(files.length === 0) return;
+  if(files.length > 10) { showToast('Maximum 10 photos autorisées'); return; }
+
+  var preview = document.getElementById('photos-preview');
+  preview.style.display = 'flex';
+  preview.innerHTML = '';
+
+  files.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var div = document.createElement('div');
+      div.style.cssText = 'position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:2px solid var(--border);';
+      var img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      div.appendChild(img);
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  showToast(files.length + ' photo(s) ajoutée(s) !');
+}
+
+function handleVideo(input) {
+  var file = input.files[0];
+  if(!file) return;
+
+  var sizeMB = file.size / (1024 * 1024);
+  if(sizeMB > 100) { showToast('Vidéo trop lourde ! Maximum 100 Mo'); return; }
+
+  var preview = document.getElementById('video-preview');
+  preview.style.display = 'block';
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    preview.innerHTML = '<video controls style="width:100%;border-radius:8px;border:2px solid var(--border);" src="'+e.target.result+'"></video>'
+      +'<div style="font-size:0.75rem;color:var(--verified);font-weight:600;margin-top:6px;">✅ '+file.name+' ('+sizeMB.toFixed(1)+' Mo)</div>';
+  };
+  reader.readAsDataURL(file);
+  showToast('Vidéo ajoutée avec succès !');
+}
+
+function simUpload(t){showToast(t==='photo'?'Photos ajoutées !':'Vidéo ajoutée !');}
+
+function publishListing(){
+  if(!currentUser){ showToast('Connectez-vous pour publier'); openAuth(); return; }
+  const price=document.getElementById('pub-price').value, desc=document.getElementById('pub-desc').value;
+  if(!price||!desc){showToast('Remplissez tous les champs obligatoires');return;}
+  const adresse = document.getElementById('pub-adresse') ? document.getElementById('pub-adresse').value : '';
+  const nom = currentUser.user_metadata?.nom || currentUser.email.split('@')[0];
+  window._pendingListing = {
+    type: document.getElementById('pub-type').value,
+    city: document.getElementById('pub-city').value,
+    quartier: document.getElementById('pub-quartier').value || '',
+    price: parseInt(price),
+    desc: desc,
+    adresse: adresse,
+    owner: nom,
+    telephone: currentUser.user_metadata?.telephone || '',
+    premium: false,
+    pieces: 1,
+    sup: 0
+  };
+  const sel=document.querySelector('input[name="pub-plan"]:checked');
+  openPayModal(sel?sel.value:'normal');
+}
+
+function openChat(){document.getElementById('chat-modal').classList.add('open');}
+function sendMsg(){
+  const inp=document.getElementById('c-inp'), txt=inp.value.trim(); if(!txt)return;
+  const msgs=document.getElementById('chat-msgs'), t=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  msgs.innerHTML+=`<div class="msg sent"><div class="msg-bubble">${txt}</div><div class="msg-time">${t}</div></div>`;
+  inp.value=''; msgs.scrollTop=msgs.scrollHeight;
+  const r=['Merci pour votre message !','Je vous réponds rapidement.','D\'accord, rendez-vous bientôt.'];
+  setTimeout(()=>{msgs.innerHTML+=`<div class="msg recv"><div class="msg-bubble">${r[Math.floor(Math.random()*r.length)]}</div><div class="msg-time">${t}</div></div>`;msgs.scrollTop=msgs.scrollHeight;},1200);
+}
+function callOwner(){showToast('📞 Appel en cours… +221 77 000 00 00');}
+
+// ══ AUTHENTIFICATION ══
+let currentUser = null;
+let currentUserRole = 'locataire';
+
+function openAuth(){
+  document.getElementById('auth-modal').classList.add('open');
+}
+
+function swATab(btn,id){
+  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('act'));
+  btn.classList.add('act');
+  document.getElementById('at-login').style.display=id==='at-login'?'flex':'none';
+  document.getElementById('at-reg').style.display=id==='at-reg'?'flex':'none';
+}
+
+function selRole(btn, role){
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  currentUserRole = role;
+}
+
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+
+  if(!email || !password){ showAuthError('login', 'Remplissez tous les champs'); return; }
+
+  btn.textContent = 'Connexion...'; btn.disabled = true;
+  errEl.style.display = 'none';
+
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    closeModalById('auth-modal');
+    onUserLoggedIn(data.user);
+  } catch(e) {
+    showAuthError('login', 'Email ou mot de passe incorrect');
+  }
+  btn.textContent = 'Se connecter'; btn.disabled = false;
+}
+
+async function doRegister(){
+  const nom = document.getElementById('reg-nom').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const tel = document.getElementById('reg-tel').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const btn = document.getElementById('reg-btn');
+
+  if(!nom || !email || !password){ showAuthError('reg', 'Remplissez tous les champs obligatoires'); return; }
+  if(password.length < 8){ showAuthError('reg', 'Mot de passe minimum 8 caractères'); return; }
+
+  btn.textContent = 'Création...'; btn.disabled = true;
+
+  try {
+    const { data, error } = await db.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { nom, telephone: tel, role: currentUserRole }
+      }
+    });
+    if(error) throw error;
+    closeModalById('auth-modal');
+    showToast('Compte créé ! Vérifiez votre email.');
+    if(data.user) onUserLoggedIn(data.user);
+  } catch(e) {
+    showAuthError('reg', e.message.includes('already') ? 'Email déjà utilisé' : e.message);
+  }
+  btn.textContent = 'Créer mon compte'; btn.disabled = false;
+}
+
+async function doForgotPassword(){
+  const email = document.getElementById('login-email').value.trim();
+  if(!email){ showToast('Entrez votre email d\'abord'); return; }
+  try {
+    await db.auth.resetPasswordForEmail(email);
+    showToast('Email de réinitialisation envoyé !');
+  } catch(e) {
+    showToast('Erreur : ' + e.message);
+  }
+}
+
+async function doLogout(){
+  await db.auth.signOut();
+  currentUser = null;
+  updateNavForUser(null);
+  showToast('Déconnecté avec succès');
+  showPage('home');
+}
+
+function showAuthError(type, msg){
+  const el = document.getElementById(type+'-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function onUserLoggedIn(user){
+  currentUser = user;
+  updateNavForUser(user);
+  const nom = user.user_metadata?.nom || user.email.split('@')[0];
+  showToast('Bienvenue ' + nom + ' !');
+  renderProf();
+}
+
+function updateNavForUser(user){
+  const btn = document.querySelector('.nav-icon-btn:last-child');
+  if(!btn) return;
+  if(user){
+    const nom = user.user_metadata?.nom || user.email.split('@')[0];
+    const initial = nom[0].toUpperCase();
+    btn.textContent = initial;
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#111';
+    btn.style.fontWeight = '800';
+    btn.onclick = () => showLogoutMenu();
+  } else {
+    btn.textContent = '👤';
+    btn.style.background = 'rgba(255,255,255,0.15)';
+    btn.style.color = 'white';
+    btn.style.fontWeight = 'normal';
+    btn.onclick = () => openAuth();
+  }
+}
+
+function showLogoutMenu(){
+  openConf('👤', 'Mon compte', currentUser ? currentUser.email : '', 'Se déconnecter', false, doLogout);
+}
+
+// Vérifier si l'utilisateur est déjà connecté au chargement
+async function checkAuthState(){
+  try {
+    const { data } = await db.auth.getSession();
+    if(data.session && data.session.user){
+      onUserLoggedIn(data.session.user);
+    }
+  } catch(e) {}
+}
+
+function openConf(ico,ttl,msg,lbl,danger,cb){
+  document.getElementById('conf-ico').textContent=ico;
+  document.getElementById('conf-ttl').textContent=ttl;
+  document.getElementById('conf-msg').textContent=msg;
+  const btn=document.getElementById('conf-ok');
+  btn.textContent=lbl; btn.className='conf-ok'+(danger?' danger':'');
+  btn.onclick=()=>{closeModalById('conf-modal');cb();};
+  document.getElementById('conf-modal').classList.add('open');
+}
+
+// ══ WAVE PAYMENT ══
+// Numéro encodé (ne pas modifier)
+const _w = atob('NzcwNzQ2MjA3');
+const WAVE_CONFIG = {
+  numero: _w,
+  nom: 'MyHome — Paiements',
+  affichage: '+221 77●●●● ●●●●'  // Numéro masqué pour la confidentialité
+};
+
+let curPlan='premium';
+
+function openPayModal(plan='premium'){
+  curPlan=plan;
+  const p=PLANS[plan];
+  // Remplir résumé
+  document.getElementById('pp-plan').textContent=p.emoji+' '+p.name;
+  document.getElementById('pp-dur').textContent=p.dur;
+  document.getElementById('pp-amt').textContent=p.price.toLocaleString('fr-FR')+' FCFA';
+  document.getElementById('pp-a2').textContent=p.price.toLocaleString('fr-FR')+' FCFA';
+  document.getElementById('wave-montant-inst').textContent=p.price.toLocaleString('fr-FR')+' FCFA';
+  const wa=document.getElementById('wave-montant-after');
+  if(wa) wa.textContent=p.price.toLocaleString('fr-FR')+' FCFA';
+  // Reset instructions after
+  const instr=document.getElementById('wave-instructions-after');
+  if(instr) instr.style.display='none';
+  // Numéro Wave
+  document.getElementById('wave-num-display').textContent=WAVE_CONFIG.affichage;
+  // Reset
+  goPS(1);
+  document.getElementById('pp-phone').value='';
+  document.getElementById('pp-ref-inp') && (document.getElementById('pp-ref-inp').value='');
+  document.getElementById('pay-modal').classList.add('open');
+}
+
+function goPS(step){
+  [1,2,3].forEach(i=>document.getElementById('psc'+i).style.display='none');
+  document.getElementById('psc'+step).style.display='block';
+}
+
+function copyWaveNum(){
+  // Copie le vrai numéro en arrière-plan sans l'afficher
+  const num='+221'+WAVE_CONFIG.numero;
+  const btn=document.getElementById('wave-copy-btn');
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(num).then(()=>{
+      btn.textContent='✅ Copié !'; btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='📋 Copier';btn.classList.remove('copied');},2000);
+      showToast('📋 Numéro Wave copié dans le presse-papier');
+    });
+  } else {
+    const el=document.createElement('textarea');
+    el.value=num; el.style.position='fixed'; el.style.opacity='0';
+    document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+    btn.textContent='✅ Copié !'; btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 Copier';btn.classList.remove('copied');},2000);
+    showToast('📋 Numéro Wave copié !');
+  }
+}
+
+function openWaveApp(){
+  const p=PLANS[curPlan];
+  // Wave Sénégal — lien qui fonctionne réellement
+  // On copie le numéro et on ouvre Wave simplement
+  const num='+221'+WAVE_CONFIG.numero;
+
+  // Copier le numéro automatiquement
+  try {
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(num);
+    } else {
+      const el=document.createElement('textarea');
+      el.value=num; el.style.position='fixed'; el.style.opacity='0';
+      document.body.appendChild(el); el.select();
+      document.execCommand('copy'); document.body.removeChild(el);
+    }
+  } catch(e){}
+
+  // Afficher instructions claires
+  document.getElementById('wave-instructions-after').style.display='block';
+  showToast('📋 Numéro copié ! Ouvrez Wave maintenant.');
+}
+
+function confirmWave(){
+  const phone=document.getElementById('pp-phone').value.replace(/\s/g,'');
+  if(phone.length<8){showToast('Entrez votre numéro Wave expéditeur');return;}
+  const ref='MYH-'+new Date().getFullYear()+'-'+Math.floor(10000+Math.random()*90000);
+  const now=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('pp-ref').textContent=ref;
+  document.getElementById('pp-rplan').textContent=PLANS[curPlan].emoji+' '+PLANS[curPlan].name;
+  document.getElementById('pp-ramt').textContent=PLANS[curPlan].price.toLocaleString('fr-FR')+' FCFA';
+  document.getElementById('pp-rphone').textContent='+221 77 ●●●● ●●●●';
+  document.getElementById('pp-rdate').textContent=now;
+
+  // Sauvegarder l'annonce dans Supabase
+  if(window._pendingListing) {
+    window._pendingListing.premium = curPlan === 'premium';
+    window._pendingListing.img = window._pendingListing.premium ? '#1A56C4' : '#4A90D9';
+    window._pendingListing.id = Date.now();
+    LISTINGS.unshift(window._pendingListing);
+    saveListingToDB(window._pendingListing);
+    window._pendingListing = null;
+  }
+
+  document.getElementById('pub-form').style.display='none';
+  document.getElementById('pub-success').style.display='block';
+  goPS(3);
+  renderHome();
+  showToast('Paiement confirme ! Annonce activee.');
+}
+
+function fmtCard(inp){let v=inp.value.replace(/\s/g,'').replace(/[^0-9]/g,'');inp.value=v.match(/.{1,4}/g)?.join(' ')||v;}
+
+// ── LOCALISATION GPS ──
+let gpsCoords = null;
+let gpsAddress = '';
+
+function detectGPS() {
+  const btn = document.getElementById('gps-btn');
+  const ico = document.getElementById('gps-btn-ico');
+  const txt = document.getElementById('gps-btn-txt');
+
+  if (!navigator.geolocation) {
+    showToast('⚠️ La géolocalisation n\'est pas supportée sur cet appareil');
+    return;
+  }
+
+  btn.classList.add('loading');
+  ico.textContent = '⏳';
+  txt.textContent = 'Détection en cours…';
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      gpsCoords = { lat: latitude, lng: longitude };
+
+      // Reverse geocoding via API gratuite
+      let addrText = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=fr`);
+        const data = await res.json();
+        if (data && data.display_name) {
+          addrText = data.display_name;
+          // Pré-remplir l'adresse
+          const addrInp = document.getElementById('pub-adresse');
+          if (addrInp && !addrInp.value) addrInp.value = data.display_name.split(',').slice(0,3).join(',').trim();
+        }
+      } catch(e) {}
+
+      gpsAddress = addrText;
+
+      // Afficher preview
+      const shortAddr = addrText.split(',').slice(0,3).join(',').trim();
+      document.getElementById('loc-preview-txt').textContent = '📡 ' + shortAddr;
+      document.getElementById('loc-preview').classList.add('show');
+      document.getElementById('loc-coords').textContent = `${latitude.toFixed(5)}, ${longitude.toFixed(5)} · précision ~${Math.round(accuracy)}m`;
+      document.getElementById('loc-map-mini').classList.add('show');
+
+      btn.classList.remove('loading');
+      ico.textContent = '✅';
+      txt.textContent = 'Position détectée avec succès !';
+      btn.style.background = 'rgba(22,163,74,0.1)';
+      btn.style.color = 'var(--verified)';
+      btn.style.borderColor = 'rgba(22,163,74,0.3)';
+
+      showToast('📍 Position détectée !');
+    },
+    (err) => {
+      btn.classList.remove('loading');
+      ico.textContent = '📡';
+      txt.textContent = 'Détecter ma position automatiquement';
+
+      const msgs = {
+        1: '⚠️ Permission refusée. Autorisez la localisation dans les paramètres.',
+        2: '⚠️ Position introuvable. Vérifiez votre connexion.',
+        3: '⚠️ Délai dépassé. Réessayez.',
+      };
+      showToast(msgs[err.code] || '⚠️ Erreur de géolocalisation');
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+}
+
+function clearGPS() {
+  gpsCoords = null; gpsAddress = '';
+  document.getElementById('loc-preview').classList.remove('show');
+  document.getElementById('loc-map-mini').classList.remove('show');
+  const btn = document.getElementById('gps-btn');
+  btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = '';
+  document.getElementById('gps-btn-ico').textContent = '📡';
+  document.getElementById('gps-btn-txt').textContent = 'Détecter ma position automatiquement';
+  showToast('Position effacée');
+}
+
+function openMapExternal() {
+  if (!gpsCoords) return;
+  const url = `https://www.openstreetmap.org/?mlat=${gpsCoords.lat}&mlon=${gpsCoords.lng}#map=17/${gpsCoords.lat}/${gpsCoords.lng}`;
+  window.open(url, '_blank');
+}
+
+function openDetailMap() {
+  const l = LISTINGS.find(x => x.id === curId);
+  if (!l) return;
+  let url;
+  if (l.coords) {
+    url = `https://www.openstreetmap.org/?mlat=${l.coords.lat}&mlon=${l.coords.lng}#map=17/${l.coords.lat}/${l.coords.lng}`;
+  } else {
+    const q = encodeURIComponent(`${l.quartier}, ${l.city}`);
+    url = `https://www.openstreetmap.org/search?query=${q}`;
+  }
+  window.open(url, '_blank');
+}
+
+// ── MODALS ──
+function closeModal(e,id){if(e.target===document.getElementById(id))closeModalById(id);}
+function closeModalById(id){document.getElementById(id).classList.remove('open');}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+renderHome();
+renderSearch(LISTINGS);
+updFavCnt();
+// Charger les annonces depuis Supabase
+loadListingsFromDB();
+// Vérifier l'état de connexion
+checkAuthState();
+</script>
+</body>
+</html>
