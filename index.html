@@ -503,8 +503,31 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
       </div>
       <div class="form-card">
         <div class="fc-title">📸 Photos & Vidéo</div>
-        <div class="upload-z" onclick="simUpload('photo')"><div class="uz-icon">📷</div><div class="uz-txt"><span>Ajouter des photos</span><br>JPG, PNG — max 10</div></div>
-        <div class="upload-z" onclick="simUpload('video')"><div class="uz-icon">🎬</div><div class="uz-txt"><span>Ajouter une vidéo</span> — Payant<br>MP4 — max 100 Mo</div></div>
+
+        <!-- Input photos — visible mais transparent -->
+        <label for="input-photos" style="display:block;cursor:pointer;">
+          <input type="file" id="input-photos" accept="image/*" multiple style="position:absolute;opacity:0;width:1px;height:1px;" onchange="handlePhotos(this)">
+          <div class="upload-z">
+            <div class="uz-icon">📷</div>
+            <div class="uz-txt"><span>Appuyer pour ajouter des photos</span><br>JPG, PNG — max 10</div>
+          </div>
+        </label>
+
+        <!-- Aperçu photos -->
+        <div id="photos-preview" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:10px;"></div>
+
+        <!-- Input vidéo — visible mais transparent -->
+        <label for="input-video" style="display:block;cursor:pointer;">
+          <input type="file" id="input-video" accept="video/*" style="position:absolute;opacity:0;width:1px;height:1px;" onchange="handleVideo(this)">
+          <div class="upload-z">
+            <div class="uz-icon">🎬</div>
+            <div class="uz-txt"><span>Appuyer pour ajouter une vidéo</span> — Payant<br>MP4 — max 100 Mo</div>
+          </div>
+        </label>
+
+        <!-- Aperçu vidéo -->
+        <div id="video-preview" style="display:none;margin-bottom:10px;"></div>
+
       </div>
       <div class="form-card">
         <div class="fc-title">⭐ Type de publication</div>
@@ -767,7 +790,86 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+
+// ══ SUPABASE CONFIG ══
+const SUPABASE_URL = 'https://bffbozlamqdlbstgrnyo.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Ayb_Uik_T5U0Pt3Loqghmw_dRNn955F';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Charger les annonces depuis Supabase
+async function loadListingsFromDB() {
+  try {
+    const { data, error } = await supabase
+      .from('logements')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      // Convertir format Supabase vers format app
+      var dbListings = data.map(function(l) {
+        return {
+          id: l.id,
+          type: l.type || 'Appartement',
+          city: l.ville || 'Dakar',
+          quartier: l.quartier || '',
+          price: l.prix || 0,
+          desc: l.description || '',
+          premium: l.premium || false,
+          verified: l.verifie || false,
+          img: l.premium ? '#1A56C4' : '#4A90D9',
+          owner: l.proprietaire || 'Propriétaire',
+          adresse: l.adresse || '',
+          pieces: 1,
+          sup: 0
+        };
+      });
+      // Ajouter aux annonces existantes
+      dbListings.forEach(function(l) {
+        if (!LISTINGS.find(function(x) { return x.id === l.id; })) {
+          LISTINGS.push(l);
+        }
+      });
+      renderHome();
+      renderSearch(LISTINGS);
+    }
+  } catch(e) {
+    console.log('Supabase:', e.message);
+  }
+}
+
+// Sauvegarder une annonce dans Supabase
+async function saveListingToDB(listing) {
+  try {
+    const { data, error } = await supabase
+      .from('logements')
+      .insert([{
+        type: listing.type,
+        ville: listing.city,
+        quartier: listing.quartier,
+        prix: listing.price,
+        description: listing.desc,
+        proprietaire: listing.owner,
+        telephone: listing.telephone || '',
+        adresse: listing.adresse || '',
+        premium: listing.premium || false,
+        verifie: false,
+        photo_url: ''
+      }])
+      .select();
+
+    if (error) throw error;
+    showToast('Annonce sauvegardée !');
+    return data[0];
+  } catch(e) {
+    console.log('Erreur sauvegarde:', e.message);
+    showToast('Annonce publiée localement');
+    return null;
+  }
+}
 const LISTINGS = [
   {id:1,type:'Studio',city:'Dakar',quartier:'Ngor',price:150000,pieces:1,sup:20,desc:'Studio moderne tout équipé. Climatisation, wifi, eau chaude. Résidence sécurisée avec gardien 24h/7. Proche plage et commerces.',premium:true,verified:true,img:'#4A90D9',owner:'Aminata Sy',adresse:'Villa 12, Rue de la Plage, Ngor, Dakar',coords:{lat:14.7465,lng:-17.5133}},
   {id:2,type:'Chambre',city:'Dakar',quartier:'Liberté 6',price:80000,pieces:1,sup:15,desc:'Belle chambre individuelle meublée dans appartement partagé. Cuisine et salle de bain communes. Quartier calme et bien desservi.',premium:true,verified:false,img:'#E8A838',owner:'Kofi Mensah',adresse:'Immeuble Ndiaye, Liberté 6, Dakar',coords:{lat:14.7295,lng:-17.4675}},
@@ -949,15 +1051,69 @@ function delList(id){
 }
 
 function selPlan(el){document.querySelectorAll('.plan-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}
-function simUpload(t){showToast(t==='photo'?'📷 Photos ajoutées !':'🎬 Vidéo ajoutée !');}
+function handlePhotos(input) {
+  var files = Array.from(input.files);
+  if(files.length === 0) return;
+  if(files.length > 10) { showToast('Maximum 10 photos autorisées'); return; }
+
+  var preview = document.getElementById('photos-preview');
+  preview.style.display = 'flex';
+  preview.innerHTML = '';
+
+  files.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var div = document.createElement('div');
+      div.style.cssText = 'position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:2px solid var(--border);';
+      var img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      div.appendChild(img);
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  showToast(files.length + ' photo(s) ajoutée(s) !');
+}
+
+function handleVideo(input) {
+  var file = input.files[0];
+  if(!file) return;
+
+  var sizeMB = file.size / (1024 * 1024);
+  if(sizeMB > 100) { showToast('Vidéo trop lourde ! Maximum 100 Mo'); return; }
+
+  var preview = document.getElementById('video-preview');
+  preview.style.display = 'block';
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    preview.innerHTML = '<video controls style="width:100%;border-radius:8px;border:2px solid var(--border);" src="'+e.target.result+'"></video>'
+      +'<div style="font-size:0.75rem;color:var(--verified);font-weight:600;margin-top:6px;">✅ '+file.name+' ('+sizeMB.toFixed(1)+' Mo)</div>';
+  };
+  reader.readAsDataURL(file);
+  showToast('Vidéo ajoutée avec succès !');
+}
+
+function simUpload(t){showToast(t==='photo'?'Photos ajoutées !':'Vidéo ajoutée !');}
 
 function publishListing(){
   const price=document.getElementById('pub-price').value, desc=document.getElementById('pub-desc').value;
-  if(!price||!desc){showToast('⚠️ Remplissez tous les champs obligatoires');return;}
-  const adresse = document.getElementById('pub-adresse').value;
-  // Save address/coords to new listing object for demo
-  window._pendingAdresse = adresse || '';
-  window._pendingCoords = gpsCoords ? {...gpsCoords} : null;
+  if(!price||!desc){showToast('Remplissez tous les champs obligatoires');return;}
+  const adresse = document.getElementById('pub-adresse') ? document.getElementById('pub-adresse').value : '';
+  window._pendingListing = {
+    type: document.getElementById('pub-type').value,
+    city: document.getElementById('pub-city').value,
+    quartier: document.getElementById('pub-quartier').value || '',
+    price: parseInt(price),
+    desc: desc,
+    adresse: adresse,
+    owner: 'Moi',
+    premium: false,
+    pieces: 1,
+    sup: 0
+  };
   const sel=document.querySelector('input[name="pub-plan"]:checked');
   openPayModal(sel?sel.value:'normal');
 }
@@ -1078,22 +1234,30 @@ function openWaveApp(){
 
 function confirmWave(){
   const phone=document.getElementById('pp-phone').value.replace(/\s/g,'');
-  if(phone.length<8){showToast('⚠️ Entrez votre numéro Wave expéditeur');return;}
-  // Générer reçu
+  if(phone.length<8){showToast('Entrez votre numéro Wave expéditeur');return;}
   const ref='MYH-'+new Date().getFullYear()+'-'+Math.floor(10000+Math.random()*90000);
   const now=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
   document.getElementById('pp-ref').textContent=ref;
   document.getElementById('pp-rplan').textContent=PLANS[curPlan].emoji+' '+PLANS[curPlan].name;
   document.getElementById('pp-ramt').textContent=PLANS[curPlan].price.toLocaleString('fr-FR')+' FCFA';
-  document.getElementById('pp-rphone').textContent='+221 77●●●● ●●●●';
+  document.getElementById('pp-rphone').textContent='+221 77 ●●●● ●●●●';
   document.getElementById('pp-rdate').textContent=now;
-  // Activer annonce
-  if(curId){const l=LISTINGS.find(x=>x.id===curId);if(l){l.premium=curPlan==='premium'||l.premium;l.verified=curPlan==='verified'||l.verified;}}
+
+  // Sauvegarder l'annonce dans Supabase
+  if(window._pendingListing) {
+    window._pendingListing.premium = curPlan === 'premium';
+    window._pendingListing.img = window._pendingListing.premium ? '#1A56C4' : '#4A90D9';
+    window._pendingListing.id = Date.now();
+    LISTINGS.unshift(window._pendingListing);
+    saveListingToDB(window._pendingListing);
+    window._pendingListing = null;
+  }
+
   document.getElementById('pub-form').style.display='none';
   document.getElementById('pub-success').style.display='block';
   goPS(3);
   renderHome();
-  showToast('🎉 Paiement confirmé ! Annonce activée.');
+  showToast('Paiement confirme ! Annonce activee.');
 }
 
 function fmtCard(inp){let v=inp.value.replace(/\s/g,'').replace(/[^0-9]/g,'');inp.value=v.match(/.{1,4}/g)?.join(' ')||v;}
@@ -1211,6 +1375,8 @@ function showToast(msg){
 renderHome();
 renderSearch(LISTINGS);
 updFavCnt();
+// Charger les annonces depuis Supabase
+loadListingsFromDB();
 </script>
 </body>
 </html>
