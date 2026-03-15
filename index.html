@@ -769,12 +769,12 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
 
 <script>
 const LISTINGS = [
-  {id:1,type:'Studio',city:'Dakar',quartier:'Ngor',price:150000,pieces:1,sup:20,desc:'Studio moderne tout équipé. Climatisation, wifi, eau chaude. Résidence sécurisée avec gardien 24h/7. Proche plage et commerces.',premium:true,verified:true,emoji:'🛏️',owner:'Aminata Sy',adresse:'Villa 12, Rue de la Plage, Ngor, Dakar',coords:{lat:14.7465,lng:-17.5133}},
-  {id:2,type:'Chambre',city:'Dakar',quartier:'Liberté 6',price:80000,pieces:1,sup:15,desc:'Belle chambre individuelle meublée dans appartement partagé. Cuisine et salle de bain communes. Quartier calme et bien desservi.',premium:true,verified:false,emoji:'🛏️',owner:'Kofi Mensah',adresse:'Immeuble Ndiaye, Liberté 6, Dakar',coords:{lat:14.7295,lng:-17.4675}},
-  {id:3,type:'Appartement',city:'Dakar',quartier:'Sacré-Cœur',price:250000,pieces:3,sup:90,desc:'Grand appartement F3 avec salon, cuisine équipée, 2 chambres. Terrasse, parking. Quartier résidentiel calme et sécurisé.',premium:false,verified:true,emoji:'🏢',owner:'Marie Ngono',adresse:'Résidence Les Flamboyants, Sacré-Cœur 3, Dakar',coords:{lat:14.7192,lng:-17.4724}},
-  {id:4,type:'Chambre',city:'Dakar',quartier:'Pikine',price:50000,pieces:1,sup:12,desc:'Petite chambre simple dans villa. Environnement familial, eau courante, électricité incluse. Idéal pour étudiant.',premium:false,verified:false,emoji:'🛏️',owner:'Ibrahima Fall',adresse:'Cité Ballabey, Pikine Est, Dakar',coords:{lat:14.7476,lng:-17.3952}},
-  {id:5,type:'Appartement',city:'Abidjan',quartier:'Cocody',price:200000,pieces:2,sup:65,desc:'Appartement F2 moderne en résidence sécurisée. Climatisation dans toutes les pièces. Groupe électrogène.',premium:true,verified:true,emoji:'🏠',owner:'Fati Kone',adresse:'Résidence Bonheur, Cocody Angré, Abidjan',coords:{lat:5.3599,lng:-3.9742}},
-  {id:6,type:'Studio',city:'Douala',quartier:'Akwa',price:75000,pieces:1,sup:22,desc:'Studio neuf non meublé, accès internet fibre, eau courante permanente. Bail 6 mois minimum.',premium:false,verified:false,emoji:'🏡',owner:'Sékou Traoré',adresse:'Boulevard de la Liberté, Akwa, Douala',coords:{lat:4.0511,lng:9.7085}},
+  {id:1,type:'Studio',city:'Dakar',quartier:'Ngor',price:150000,pieces:1,sup:20,desc:'Studio moderne tout équipé. Climatisation, wifi, eau chaude. Résidence sécurisée avec gardien 24h/7. Proche plage et commerces.',premium:true,verified:true,img:'#4A90D9',owner:'Aminata Sy',adresse:'Villa 12, Rue de la Plage, Ngor, Dakar',coords:{lat:14.7465,lng:-17.5133}},
+  {id:2,type:'Chambre',city:'Dakar',quartier:'Liberté 6',price:80000,pieces:1,sup:15,desc:'Belle chambre individuelle meublée dans appartement partagé. Cuisine et salle de bain communes. Quartier calme et bien desservi.',premium:true,verified:false,img:'#E8A838',owner:'Kofi Mensah',adresse:'Immeuble Ndiaye, Liberté 6, Dakar',coords:{lat:14.7295,lng:-17.4675}},
+  {id:3,type:'Appartement',city:'Dakar',quartier:'Sacré-Cœur',price:250000,pieces:3,sup:90,desc:'Grand appartement F3 avec salon, cuisine équipée, 2 chambres. Terrasse, parking. Quartier résidentiel calme et sécurisé.',premium:false,verified:true,img:'#5BAD6F',owner:'Marie Ngono',adresse:'Résidence Les Flamboyants, Sacré-Cœur 3, Dakar',coords:{lat:14.7192,lng:-17.4724}},
+  {id:4,type:'Chambre',city:'Dakar',quartier:'Pikine',price:50000,pieces:1,sup:12,desc:'Petite chambre simple dans villa. Environnement familial, eau courante, électricité incluse. Idéal pour étudiant.',premium:false,verified:false,img:'#9B59B6',owner:'Ibrahima Fall',adresse:'Cité Ballabey, Pikine Est, Dakar',coords:{lat:14.7476,lng:-17.3952}},
+  {id:5,type:'Appartement',city:'Abidjan',quartier:'Cocody',price:200000,pieces:2,sup:65,desc:'Appartement F2 moderne en résidence sécurisée. Climatisation dans toutes les pièces. Groupe électrogène.',premium:true,verified:true,img:'#E74C3C',owner:'Fati Kone',adresse:'Résidence Bonheur, Cocody Angré, Abidjan',coords:{lat:5.3599,lng:-3.9742}},
+  {id:6,type:'Studio',city:'Douala',quartier:'Akwa',price:75000,pieces:1,sup:22,desc:'Studio neuf non meublé, accès internet fibre, eau courante permanente. Bail 6 mois minimum.',premium:false,verified:false,img:'#1ABC9C',owner:'Sékou Traoré',adresse:'Boulevard de la Liberté, Akwa, Douala',coords:{lat:4.0511,lng:9.7085}},
 ];
 
 let curId=null, prevPg='home', favs=new Set([2]), myList=[1,2];
@@ -796,24 +796,26 @@ function showPage(id){
 function goBack(){showPage(prevPg);}
 
 function renderHCard(l,showAct=false){
-  const isFav=favs.has(l.id);
-  const m1=l.pieces>1?`<div class="hcard-meta-i">🏗️ ${l.pieces} Pièces</div>`:`<div class="hcard-meta-i">🛏️ ${l.type}</div>`;
-  const m2=l.sup?`<div class="hcard-meta-i">🏠 ${l.sup} m²</div>`:'';
-  return `<div class="hcard ${l.premium?'premium':''}" id="hc-${l.id}">
-    <div class="hcard-img" onclick="openDetail(${l.id})">${l.premium?'<div class="hcard-pbadge">⭐ PREMIUM</div>':''}${l.emoji}</div>
-    <div class="hcard-body">
-      <div>
-        <div class="hcard-title">${l.type}${l.pieces>1?' F'+l.pieces:''} à ${l.quartier}</div>
-        <div class="hcard-price">${l.price.toLocaleString('fr-FR')} FCFA <span>/ mois</span>${l.verified?'<span class="vbadge">✅ Vérifié</span>':''}</div>
-        <div class="hcard-loc">${l.quartier}, ${l.city}</div>
-      </div>
-      <div class="hcard-meta">${m1}${m2}<button class="hcard-fav ${isFav?'act':''}" onclick="event.stopPropagation();togFav(${l.id},this)">${isFav?'♥':'♡'}</button></div>
-      ${showAct?`<div style="display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-        <button onclick="markSold(${l.id})" style="flex:1;background:rgba(22,163,74,0.1);color:var(--verified);border:1.5px solid rgba(22,163,74,0.25);border-radius:6px;padding:7px;font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;">🏠 Preneur trouvé</button>
-        <button onclick="delList(${l.id})" style="flex:1;background:rgba(220,38,38,0.07);color:var(--danger);border:1.5px solid rgba(220,38,38,0.2);border-radius:6px;padding:7px;font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;">🗑️ Supprimer</button>
-      </div>`:''}
-    </div>
-  </div>`;
+  var isFav=favs.has(l.id);
+  var m1=l.pieces>1?'<div class="hcard-meta-i">'+l.pieces+' Pieces</div>':'<div class="hcard-meta-i">'+l.type+'</div>';
+  var m2=l.sup?'<div class="hcard-meta-i">'+l.sup+' m2</div>':'';
+  var pbadge=l.premium?'<div class="hcard-pbadge">PREMIUM</div>':'';
+  var vbadge=l.verified?'<span class="vbadge">Verifie</span>':'';
+  var fav='<button class="hcard-fav '+(isFav?'act':'')+'" onclick="event.stopPropagation();togFav('+l.id+',this)">'+(isFav?'&hearts;':'&hearts;')+'</button>';
+  var actBtns=showAct?'<div style="display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #E5E7EB;"><button onclick="markSold('+l.id+')" style="flex:1;background:rgba(22,163,74,0.1);color:#16A34A;border:1.5px solid rgba(22,163,74,0.25);border-radius:6px;padding:7px;font-size:0.75rem;font-weight:700;cursor:pointer;">Preneur trouve</button><button onclick="delList('+l.id+')" style="flex:1;background:rgba(220,38,38,0.07);color:#DC2626;border:1.5px solid rgba(220,38,38,0.2);border-radius:6px;padding:7px;font-size:0.75rem;font-weight:700;cursor:pointer;">Supprimer</button></div>':'';
+  var imgStyle='background:'+l.img+';display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;font-weight:900;letter-spacing:1px;';
+  var imgTxt=l.type.substring(0,2).toUpperCase();
+  return '<div class="hcard '+(l.premium?'premium':'')+'" id="hc-'+l.id+'">'
+    +'<div class="hcard-img" style="'+imgStyle+'" onclick="openDetail('+l.id+')">'+pbadge+imgTxt+'</div>'
+    +'<div class="hcard-body">'
+    +'<div>'
+    +'<div class="hcard-title">'+l.type+(l.pieces>1?' F'+l.pieces:'')+' a '+l.quartier+'</div>'
+    +'<div class="hcard-price">'+l.price.toLocaleString('fr-FR')+' FCFA <span>/ mois</span>'+vbadge+'</div>'
+    +'<div class="hcard-loc">'+l.quartier+', '+l.city+'</div>'
+    +'</div>'
+    +'<div class="hcard-meta">'+m1+m2+fav+'</div>'
+    +actBtns
+    +'</div></div>';
 }
 
 function renderHome(list){
@@ -1000,7 +1002,6 @@ const WAVE_CONFIG = {
   affichage: '+221 77●●●● ●●●●'  // Numéro masqué pour la confidentialité
 };
 
-const PLANS={normal:{name:'Publication normale',price:1000,dur:'Unique',emoji:'📝'},premium:{name:'Premium ⭐',price:2500,dur:'1 mois',emoji:'⭐'},verified:{name:'Logement vérifié ✅',price:2500,dur:'Unique',emoji:'✅'}};
 let curPlan='premium';
 
 function openPayModal(plan='premium'){
