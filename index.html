@@ -768,7 +768,9 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
 <div class="toast" id="toast"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {const LISTINGS = [
+document.addEventListener('DOMContentLoaded', function() {
+
+const LISTINGS = [
   {id:1,type:'Studio',city:'Dakar',quartier:'Ngor',price:150000,pieces:1,sup:20,desc:'Studio moderne tout équipé. Climatisation, wifi, eau chaude. Résidence sécurisée avec gardien 24h/7. Proche plage et commerces.',premium:true,verified:true,emoji:'🛏️',owner:'Aminata Sy',adresse:'Villa 12, Rue de la Plage, Ngor, Dakar',coords:{lat:14.7465,lng:-17.5133}},
   {id:2,type:'Chambre',city:'Dakar',quartier:'Liberté 6',price:80000,pieces:1,sup:15,desc:'Belle chambre individuelle meublée dans appartement partagé. Cuisine et salle de bain communes. Quartier calme et bien desservi.',premium:true,verified:false,emoji:'🛏️',owner:'Kofi Mensah',adresse:'Immeuble Ndiaye, Liberté 6, Dakar',coords:{lat:14.7295,lng:-17.4675}},
   {id:3,type:'Appartement',city:'Dakar',quartier:'Sacré-Cœur',price:250000,pieces:3,sup:90,desc:'Grand appartement F3 avec salon, cuisine équipée, 2 chambres. Terrasse, parking. Quartier résidentiel calme et sécurisé.',premium:false,verified:true,emoji:'🏢',owner:'Marie Ngono',adresse:'Résidence Les Flamboyants, Sacré-Cœur 3, Dakar',coords:{lat:14.7192,lng:-17.4724}},
